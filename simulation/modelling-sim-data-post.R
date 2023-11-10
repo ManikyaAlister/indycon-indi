@@ -1,8 +1,5 @@
 library(here)
-library(tidyverse)
 library(brms)
-library(parallel)  
-library(doParallel)
 
 load(here("simulation/generating_data_post.Rdata"))
 participants <- unique(generating_data$uid)
