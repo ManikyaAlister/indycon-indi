@@ -1,6 +1,9 @@
 # slurm output files
 slurm_output/*
 
+# model output files
+simulation/output/*
+
 
 # History files
 .Rhistory
