@@ -9,7 +9,7 @@ load(here("data/experiment-3-2022/data.rdata"))
 participants <- unique(generating_params$uid_num)
 n <- length(participants)
 
-all_trials_per_cell <- c(3, 6, 9, 12, 16, 20)
+all_trials_per_cell <- c(6, 9, 12, 16, 20)
 trials_per_cell_real <- 6 # how many trials per cell in real data
 max_trials_per_cell <- 20-trials_per_cell_real # so that first n trials are the real data
 n_cells <- 2
