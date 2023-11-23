@@ -1,6 +1,7 @@
 rm(list = ls())
 library(here)
 library(dplyr)
+library(tidyverse)
 load(here("data/experiment-3-2022/proportion_above_median.Rdata"))
 load(here("data/experiment-3-2022/data.2.Rdata"))
 
@@ -13,6 +14,15 @@ data <- data.2 %>%
   )
 
 save(data, file = here("data/experiment-3-2022/data.rdata"))
+
+# Filter data for topic level analysis for Ee Von
+data_topics <- data %>%
+  select(uid, trialType, prior, post_adjusted, nSources_A)%>%
+  mutate(update = post_adjusted-prior)%>% 
+  group_by(trialType, nSources_A) %>%
+  summarise(update = median(update)) %>%
+  pivot_wider(names_from = nSources_A, values_from = update)
+write.csv(data_topics, file = here("simulation/topic-analysis/data/topic_data.csv"))
 
 proportion_above_median$uid_num = proportion_above_median$uid
 
