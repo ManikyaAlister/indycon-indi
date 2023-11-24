@@ -4,7 +4,7 @@ library(here, lib.loc = lib)
 library(brms, lib.loc = lib)
 
 load(here("simulation/data/generating_params_adjusted.Rdata"))
-participants <- unique(generating_params$uid)
+participants <- unique(generating_params$uid_num)
 n <- length(participants)
 
 n_cells <- 2
@@ -21,6 +21,8 @@ trials_per_cell <- as.numeric(args[1])
 
 # total trials in the cell, therefore determining the data set to load
 n_trials <- trials_per_cell*n_cells
+
+uid <- participants[p]
 
 # print progress
 print(paste0("Starting participant ", p, ", ", n_trials, " trials"))
