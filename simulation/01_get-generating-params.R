@@ -7,8 +7,8 @@ load(here("data/experiment-3-2022/data.2.Rdata"))
 data <- data.2 %>%
   mutate(
          uid_num = factor(as.integer(uid), levels = unique(as.integer(uid))),
-         post_adjusted = ifelse(sideA == "pro", post, (100-post)),
-         prior_adjusted = ifelse(sideA == "pro", prior, (100-prior)),
+         post_adjusted = ifelse(sideA == "con", post, (100-post)),
+         prior_adjusted = ifelse(sideA == "con", prior, (100-prior)),
          update = post_adjusted-prior_adjusted
   )
 

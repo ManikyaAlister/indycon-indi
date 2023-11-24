@@ -39,9 +39,9 @@ for (j in all_trials_per_cell){
   n_trials <- n_cells * j
   print(paste0("Trials: ", n_trials))
   for (i in start:n){
-    if (i %in% c(36,58, 74, 93,99)){
-      next
-    }
+    # if (i %in% c(36,58, 74, 93,99)){
+    #   next
+    # }
     print(paste0("Participant ", i))
     load(here(paste0("simulation/output/P",i,"-output-",n_trials,"-trials-simdata-adjusted.Rdata")))
     null_looic[i] <- loo_null$estimates["looic",1]
@@ -52,7 +52,7 @@ for (j in all_trials_per_cell){
     best_model[i] <- models[which.min(c(loo_null$estimates["looic",1], loo_alt$estimates["looic",1]))]
     ps[i] <- p
     subjs[i]<-i
-    gd <- generating_params %>% filter(uid_num == p)
+    gd <- generating_params %>% filter(uid_num == uid)
     type[i] <- unique(gd$p_type)
     posterior_sample <- as_draws_df(alt)
     CI_89 <- quantile(posterior_sample$b_nSources_A4, probs = c(0.055, 0.945))
