@@ -9,15 +9,15 @@ data <- data.2 %>%
          uid_num = factor(as.integer(uid), levels = unique(as.integer(uid))),
          post_adjusted = ifelse(sideA == "pro", post, (100-post)),
          prior_adjusted = ifelse(sideA == "pro", prior, (100-prior)),
-         update = post_adjusted-prior
+         update = post_adjusted-prior_adjusted
   )
 
 save(data, file = here("data/experiment-3-2022/data.rdata"))
 
 # Filter data for topic level analysis for Ee Von
 data_topics <- data %>%
-  select(uid, trialType, prior, post_adjusted, nSources_A)%>%
-  mutate(update = post_adjusted-prior)%>% 
+  select(uid, trialType, prior_adjusted, post_adjusted, nSources_A)%>%
+  mutate(update = post_adjusted-prior_adjusted)%>% 
   group_by(trialType, nSources_A) %>%
   summarise(update = median(update)) %>%
   pivot_wider(names_from = nSources_A, values_from = update)
