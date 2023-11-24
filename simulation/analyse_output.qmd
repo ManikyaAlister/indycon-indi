@@ -1,0 +1,403 @@
+---
+title: "Simulation Analyses"
+author: "Manikya Alister"
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+editor: visual
+bibliography: references.bib
+---
+
+```{r}
+#| include: false
+library(here)
+library(tidyverse)
+library(brms)
+```
+
+# BRMS Simulation 
+
+How many trials do we need to be able to detect an effect of source independence at the individual level?
+
+## Simulation method
+
+I simulated this data based on real participant data from @alister2022. There were two main manipulations in this study: 2 consensus direction (i.e., whether the members of the consensus were arguing for or against the claim) X 2 consensus independence (i.e., whether the members of the consensus all shared the same primary source, or all shared different sources). This means there were four "cells" in the experiment. For each cell, I calculated the mean and standard deviation belief update (the difference between their 1-100 belief in the claim before versus after seeing the consensus). Using these means and standard deviations, I simulated either 3, 6, 9, 12, 16, or 20 trials per cell. Because there were 4 cells, this resulted in 6 data sets with 12, 24, 36, 48, 64, or 80 trials per participant.
+
+## Modelling
+
+The goal of this simulation was to fit separate Bayesian linear models to each participant. Usually, what we do is fit these models to all of the participants, with participant as a random effect, in order to identify group level consensus effects, but this isn't able to capture individual differences.
+
+I kept the modelling reasonably simple, with a null model that only considers the consensus direction:
+
+`belief update ~ direction`
+
+Against an alternative model that also considers source independence:
+
+`belief update ~ direction + independence`
+
+One thing to keep in mind is that the models in the original study were not performed on the transformed "update" variable, but instead on their post score whilst accounting for their prior score as a control variable. I'm not sure how much of a difference this will make, but something to consider.
+
+The general goal here is to see at which point increasing more trials does not appear to increase the number of participants best fit to the alternative model. Once that plateau begins to occur, then we should have a good idea of how many trials per participants we will need.
+
+```{r}
+# load combined output
+load(here("simulation/output/all-output.Rdata"))
+n <- length(unique(all_output$ps))
+
+# Figure out which data sets still contained NAs despite correcting for instances where sd = 0 in real data. 
+all_NA <- NULL
+has_NA <- c()
+p <- c()
+for (i in 1:n) {
+  load(here(paste0("simulation/data/p",i,"-12-trials.Rdata")))
+  has_na <- any(is.na(sim_data$sideA))
+  p <- i
+  d_iteration <- cbind(p,has_na)
+  all_NA <-rbind(all_NA, d_iteration)
+}
+
+na_subjects <- all_NA[all_NA[,"has_na"]==1,]
+subjects_not_analysed <- c(na_subjects[,"p"], 58) # models didn't run on p58 (index 44) for some reason
+
+# filter subjects from all_output
+all_output <- all_output %>%
+  filter(!ps %in% subjects_not_analysed)
+
+# calculate new n with participants removed
+adjusted_n <- length(unique(all_output$ps))
+```
+
+## Number of participants best fit to the alternative model by the number of trials
+
+Using LOOIC, this analysis compared which participants were best fit to the alternative model versus the null model.
+
+```{r}
+# see how many people were best fit by the alternative model as a function of n trials. 
+alt <- all_output %>%
+  filter(best_model == "alt")
+
+alt %>%
+  group_by(n_trials) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = n_trials, y = n, group = 1)) +
+  ylim(0,adjusted_n)+
+  geom_col()+
+  geom_line()
+```
+
+## Number of participants with 95% credible estimates on the independence parameter
+
+Another way to evaluate consensus independence is to look at the estimate and associated credible intervals of the independence parameter.
+
+```{r}
+# see how many people had credible estimates as a function of n trials. 
+
+all_output$estimate_contains_0_95 <- with(all_output, lower95 < 0 & upper95 > 0)
+all_output$estimate_contains_0_89 <- with(all_output, lower89 < 0 & upper89 > 0)
+
+credible_estimates_95 <- all_output %>%
+  filter(estimate_contains_0_95 == FALSE) 
+
+credible_estimates_89 <- all_output %>%
+  filter(estimate_contains_0_89 == FALSE) 
+
+credible_estimates_95 %>%
+  group_by(n_trials) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = n_trials, y = n, group = 1)) +
+  ylim(0,adjusted_n)+
+  geom_col()+
+  geom_line()
+
+```
+
+It has been argued that a 95% credible interval is not actually the most appropriate for Bayesian credible intervals, since unless you have an effective sample size (ESS) of at least 10,000, a 95% credible interval is not very stable [@kruschke2014]. An alternate interval is the 89% credible interval, which is much more stable for the ESS that we will have in our study (around 4000; @kruschke2014).
+
+## Number of participants with 89% credible estimates on the independence parameter
+
+```{r}
+credible_estimates_89 %>%
+  group_by(n_trials) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = n_trials, y = n, group = 1)) +
+  ylim(0,adjusted_n)+
+  geom_col()+
+  geom_line()
+```
+
+## Looking at whether people had a preference for source diversity or repetition
+
+A credible estimate of independence, or a model comparison favoring the alternative model only tells us whether there was an effect of consensus independence, but it does not tell us whether people preferred independent (diverse sources) or dependent (repeated) sources. People could reasonably have a preference for either, since diversity indicates more of the hypothesis spaces has been searched, whereas repetition might suggest that the source is more reliable, since it has been endorsed by more people. We can determine whether people had a preference for either by looking at the sign of the independence parameter. If it is positive, that person had a preference for diversity. If it was negative that person had a preference for repetition.
+
+```{r}
+# see how many people had estimates in line with someone senistive to independence (positive estimate) v dependence (negative estimate)
+
+credible_estimates_89$positive <- credible_estimates_89$ind_estimate > 0
+credible_estimates_89$negative <- credible_estimates_89$ind_estimate < 0
+
+sum_pos <- credible_estimates_89 %>% 
+  group_by(n_trials) %>%
+  summarise(count = sum(positive))  %>%
+  mutate(sign = "Participants favouring diversity")
+
+sum_neg <- credible_estimates_89 %>% 
+  group_by(n_trials) %>%
+  summarise(count= sum(negative)) %>%
+  mutate(sign = "Participants favouring repetition")
+
+sum <- bind_rows(sum_pos, sum_neg)
+
+sum %>% 
+  ggplot(aes(x = n_trials, y = count, group = 1)) +
+  ylim(0,adjusted_n)+
+  geom_col()+
+  geom_line()+
+  facet_wrap(~sign)+
+  theme_bw()
+```
+
+I'm not sure if this tells us much about experimental power, but interesting to see that in the simulated data at least, there different strategies are split pretty evenly. It is possible that the repetition effects are smaller, which is why there is a bigger difference in n as a function of trials.
+
+# Topic Analyses
+
+Are there some clusters which tend to elicit effects more than others?
+
+One way--- regression on each claim, get the estimates of those claims then cluster them?
+
+```{r}
+# laod emperical data from E3 of ALister et al. 2022
+load(here("data/data.2.rdata"))
+data <- data.2
+```
+
+```{r}
+#|warning: false
+claim_data <- data %>%
+  group_by(trialType, nSources_A, sideA) %>%
+  mutate(update = post - prior) %>%
+  summarise(update = mean(update)) %>%
+  pivot_wider(names_from = c(nSources_A, sideA), values_from = update) %>%
+  mutate(delta_pro = `4_pro` - `1_pro`,
+         delta_con = `4_con` - `1_con`
+         ) %>%
+  select(trialType, delta_pro, delta_con)
+
+claim_data
+
+```
+
+```{r}
+clustering_data <- claim_data[,-1]
+
+# library(dbscan)
+# hdbscan(clustering_data, minPts = 5)
+# kmeans(clustering_data, 3)
+clustering_data
+```
+
+```{r}
+# Load required libraries
+library(dbscan)
+library(factoextra)
+n_topics <- nrow(clustering_data)
+min_pts <- n_topics/5
+
+mds <- clustering_data
+# reduce dimensions via multi-dimensional scaling
+#mds <- cmdscale(dist(clustering_data), k = 2)
+#colnames(mds) <- c("d1", "d2")
+
+kNNdistplot(mds, minPts = min_pts)
+```
+
+```{r}
+
+# Perform DBSCAN clustering
+db_result <- dbscan(mds, eps = 4, minPts = min_pts)
+
+# Summarize the DBSCAN results
+table(db_result$cluster)
+
+plot_data <- data.frame(x = mds[, 1], y = mds[, 2], Cluster = factor(db_result$cluster))
+
+# Plot the clusters
+ggplot(plot_data, aes(delta_pro, delta_con, color = Cluster)) +
+  geom_point(size = 3) +
+  #labs(x = "MDS Dimension 1", y = "MDS Dimension 2", title = "DBSCAN Clustering Results") +
+  scale_color_discrete(name = "Cluster") +
+  theme_minimal()
+```
+
+```{r}
+clusters <- db_result$cluster
+names(clusters) <- claim_data$trialType
+clusters
+```
+
+## Simulate some topic data (more topics)
+
+With just 12 topics, this is probably very under powered. Let's simulate some more topics based on the actual mean and standard deviations of each topic according to each dimension and see how the topic estimates change.
+
+```{r}
+# #| include: false
+# claim_means <- apply(clustering_data,2, mean)
+# claim_sds <- apply(clustering_data,2, sd)
+# 
+# simulated_data <- data.frame('1_con' = rnorm(20, claim_means["1_con"], claim_sds["1_con"]), '1_pro' = rnorm(20, claim_means["1_pro"], claim_sds["1_pro"]), '4_con' = rnorm(20, claim_means["4_con"], claim_sds["4_con"]), '4_pro' = rnorm(20, claim_means["4_pro"], claim_sds["4_pro"]))
+# 
+# colnames(simulated_data) <- colnames(clustering_data)
+# combined_clustering_data <- rbind(clustering_data, simulated_data)
+```
+
+```{r}
+# #| include: false
+# n_topics <- nrow(combined_clustering_data)
+# min_pts <- n_topics/10
+# 
+# # reduce dimensions via multi-dimensional scaling
+# mds <- cmdscale(dist(combined_clustering_data), k = 2)
+# colnames(mds) <- c("d1", "d2")
+# 
+# kNNdistplot(mds, minPts = min_pts)
+```
+
+```{r}
+# #| include: false
+# # Perform DBSCAN clustering
+# db_result <- dbscan(mds, eps = 6, minPts = min_pts)
+# 
+# # Summarize the DBSCAN results
+# table(db_result$cluster)
+# 
+# plot_data <- data.frame(x = mds[, 1], y = mds[, 2], Cluster = factor(db_result$cluster))
+# 
+# # Plot the clusters
+# ggplot(plot_data, aes(x, y, color = Cluster)) +
+#   geom_point(size = 3) +
+#   labs(x = "MDS Dimension 1", y = "MDS Dimension 2", title = "DBSCAN Clustering (Simulated Data) Results") +
+#   scale_color_discrete(name = "Cluster") +
+#   theme_minimal()
+```
+
+```{r}
+# #| include: false
+# clusters <- db_result$cluster
+# clusters
+```
+
+```{r}
+#| include: false
+#| warning: false
+
+# k_range <- 10
+# 
+# gap <- fviz_nbclust(combined_clustering_data, kmeans,method = "gap_stat", nstart = 25, nboot = 50) +
+#   labs(subtitle = "Gap statistic method")
+# 
+# elbow <- fviz_nbclust(combined_clustering_data, kmeans,method = "wss", nstart = 25, nboot = 50) +
+#   labs(subtitle = "Gap statistic method")
+# 
+# sil <- fviz_nbclust(combined_clustering_data, kmeans,method = "silhouette", nstart = 25, nboot = 50) +
+#   labs(subtitle = "Gap statistic method")
+# 
+# 
+# # Perform k-means clustering with the chosen number of clusters
+# optimal_k <- which.min(wss)
+# optimal_k <- which.max(silhouette_scores)
+# 
+# set.seed(123)  # For reproducibility
+# 
+# kmeans_result <- kmeans(combined_clustering_data, centers = optimal_k)
+# 
+# # Reduce the data to two dimensions using PCA
+# pca_result <- prcomp(combined_clustering_data, scale = TRUE)
+# 
+# # Extract the first two principal components
+# reduced_data <- as.data.frame(pca_result$x[, 1:2])
+# 
+# # Add cluster assignments to the reduced data
+# reduced_data$Cluster <- kmeans_result$cluster
+# 
+# # Plot the clusters
+# library(ggplot2)
+# ggplot(reduced_data, aes(PC1, PC2, color = factor(Cluster))) +
+#   geom_point() +
+#   labs(x = "PC1", y = "PC2", title = "Cluster Analysis Results") +
+#   theme_minimal() +
+#   scale_color_discrete(name = "Cluster")
+# 
+# # Summarize the k-means results
+# kmeans_result
+
+```
+
+```{r}
+#| warning: false
+#| include: false
+# Assuming you have your data in a data frame called 'clustering_data'
+# Read your data into a data frame if it's not already in one
+
+# # Load required libraries
+# library(cluster)
+# library(factoextra)
+# 
+# k_range <- 10
+# 
+# # Determine the optimal number of clusters using the elbow method
+# wss <- numeric(k_range)
+# for (i in 1:k_range) {
+#   kmeans_result <- kmeans(clustering_data, centers = i, nstart = 25)
+#   wss[i] <- sum(kmeans_result$tot.withinss)
+# }
+# 
+# # Plot the elbow plot
+# plot(1:k_range, wss, type = "b", xlab = "Number of Clusters", ylab = "Total Within-Cluster Sum of Squares")
+# abline(v = which.min(wss), col = "red", lty = 2)
+# 
+# # Based on the elbow plot, you can visually inspect for the optimal number of clusters
+# 
+# # Create an empty vector to store silhouette scores
+# silhouette_scores <- numeric(10)
+# 
+# # Calculate silhouette scores for a range of cluster numbers (1 to 10)
+# for (i in 2:10) {
+#   kmeans_result <- kmeans(clustering_data, centers = i, nstart = 25)
+#   silhouette_scores[i] <- silhouette(kmeans_result$cluster, dist(clustering_data))
+# }
+# 
+# # Plot the silhouette scores
+# plot(2:10, silhouette_scores[2:10], type = "b", xlab = "Number of Clusters", ylab = "Silhouette Score")
+# abline(v = which.max(silhouette_scores), col = "red", lty = 2)
+# 
+# # Ba
+# 
+# # Perform k-means clustering with the chosen number of clusters
+# optimal_k <- which.min(wss)
+# optimal_k <- which.max(silhouette_scores)
+# 
+# set.seed(123)  # For reproducibility
+# 
+# kmeans_result <- kmeans(clustering_data, centers = optimal_k)
+# 
+# # Reduce the data to two dimensions using PCA
+# pca_result <- prcomp(clustering_data, scale = TRUE)
+# 
+# # Extract the first two principal components
+# reduced_data <- as.data.frame(pca_result$x[, 1:2])
+# 
+# # Add cluster assignments to the reduced data
+# reduced_data$Cluster <- kmeans_result$cluster
+# 
+# # Plot the clusters
+# library(ggplot2)
+# ggplot(reduced_data, aes(PC1, PC2, color = factor(Cluster))) +
+#   geom_point() +
+#   labs(x = "PC1", y = "PC2", title = "Cluster Analysis Results") +
+#   theme_minimal() +
+#   scale_color_discrete(name = "Cluster")
+# 
+# # Summarize the k-means results
+# kmeans_result
+
+```

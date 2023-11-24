@@ -46,7 +46,7 @@ fi
 module load foss/2022a R/4.2.1
 
 # Set the number of models
-data_sets=(6 12 18 24 32 40)
+data_sets=(6 9 12 16 20)
 n_data_sets=6
 
 # Set the participant numbers (make sure the slurm array is set up for the correct model * participant combintation)
@@ -57,7 +57,7 @@ dataset_idx=$(((SLURM_ARRAY_TASK_ID-1) % n_data_sets))
 participant_idx=$(((SLURM_ARRAY_TASK_ID-1) / n_data_sets))
 
 # Run the R script with the input and output files and the participant number as a command line argument
-Rscript /data/gpfs/projects/punim1751/indycon-indi/simulation/modelling-sim-data-adjusted.R ${data_sets[$dataset_idx]} ${participants[$participant_idx]}
+Rscript /data/gpfs/projects/punim1751/indycon-indi/simulation/03_modelling-sim-data-adjusted.R ${data_sets[$dataset_idx]} ${participants[$participant_idx]}
 
 ##DO NOT ADD/EDIT BEYOND THIS LINE##
 ##Job monitor command to list the resource usage
