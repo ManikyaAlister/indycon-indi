@@ -57,6 +57,7 @@ print(paste0("Alternative model done"))
 save(p_type,
      p,
      d,
+     uid,
      null,
      sum_null,
      loo_null,
