@@ -16,7 +16,8 @@ n_cells <- 2
 
 # generate the maximum number of trials per cell
 for (i in 1:n){
-  p <- participants[i]
+  uid <- participants[i]
+  p <- i
   p_gen_data <- generating_params %>%
     filter(uid_num == p)
   
@@ -59,7 +60,7 @@ for (i in 1:n){
     prior <- c(cell_real$prior, prior_sim)
     post <- c(cell_real$post_adjusted, post_sim)
     
-    d_cell <- cbind(p, nSources_A, update, prior, post, type)
+    d_cell <- cbind(p, nSources_A, update, prior, post, type, uid)
     all_sim_data <- rbind(all_sim_data, d_cell)
   }
   # take just the trials in that n_trials condition for each cell
@@ -73,3 +74,4 @@ for (i in 1:n){
     save(sim_data, file = here(paste0("simulation/data/p",i,"-",n_trials,"-trials-adjusted.Rdata")))
   }
 }
+
