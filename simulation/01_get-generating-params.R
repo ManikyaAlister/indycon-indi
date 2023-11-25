@@ -6,9 +6,9 @@ load(here("data/experiment-3-2022/data.2.Rdata"))
 
 data <- data.2 %>%
   mutate(
-         uid_num = factor(as.integer(uid), levels = unique(as.integer(uid))),
-         post_adjusted = ifelse(sideA == "con", post, (100-post)),
-         prior_adjusted = ifelse(sideA == "con", prior, (100-prior)),
+         #uid_num = factor(as.integer(uid), levels = unique(as.integer(uid))),
+         post_adjusted = ifelse(sideA == "pro", post, (100-post)),
+         prior_adjusted = ifelse(sideA == "pro", prior, (100-prior)),
          update = post_adjusted-prior_adjusted
   )
 
@@ -38,7 +38,9 @@ participant_types <- proportion_above_median %>%
   filter(!duplicated(uid))
 # More convinced by independence
 
-sim_participants <- participant_types$uid_num
+save(participant_types, file = "simulation/data/participant_types.Rdata")
+
+sim_participants <- participant_types$full_uid
 
 generating_params <- NULL
 for (i in 1:length(sim_participants)) {
@@ -48,20 +50,21 @@ for (i in 1:length(sim_participants)) {
   # get uid number
   id <- sim_participants[i]
   
-  p_type <- as.character(participant_types[participant_types$uid == as.character(id), "p_type"])
+  p_type <- as.character(participant_types[participant_types$full_uid == id, "p_type"])
   
   if(is.na(p_type)) stop()
   # get generating params
   gen_data <- data %>%
-    filter(uid_num == id) %>%
-    group_by(uid_num, nSources_A) %>%
+    filter(uid == id) %>%
+    #select(uid, uid_num, nSources_A, sideA, update, prior, prior_adjusted, post, post_adjusted)
+  group_by(uid, nSources_A) %>%
     summarise(
       mean_update = mean(update),
       sd_update = sd(update),
-      mean_prior = mean(prior),
-      sd_prior = sd(prior),
-      mean_post = mean(post),
-      sd_post = sd(post)
+      mean_prior = mean(prior_adjusted),
+      sd_prior = sd(prior_adjusted),
+      mean_post = mean(post_adjusted),
+      sd_post = sd(post_adjusted)
     ) %>%
     mutate(p_type = p_type)
   
