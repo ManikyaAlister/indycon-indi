@@ -3,6 +3,7 @@ title: "Simulation Analyses"
 author: "Manikya Alister"
 format: 
   html:
+    embed-resources: true
     code-fold: true
     code-summary: "Show the code"
 editor: visual
@@ -11,6 +12,7 @@ bibliography: references.bib
 
 ```{r}
 #| include: false
+rm(list=ls())
 library(here)
 library(tidyverse)
 library(brms)
@@ -22,7 +24,7 @@ How many trials do we need to be able to detect an effect of source independence
 
 ## Simulation method
 
-I simulated this data based on real participant data from @alister2022. There were two main manipulations in this study: 2 consensus direction (i.e., whether the members of the consensus were arguing for or against the claim) X 2 consensus independence (i.e., whether the members of the consensus all shared the same primary source, or all shared different sources). This means there were four "cells" in the experiment. For each cell, I calculated the mean and standard deviation belief update (the difference between their 1-100 belief in the claim before versus after seeing the consensus). Using these means and standard deviations, I simulated either 3, 6, 9, 12, 16, or 20 trials per cell. Because there were 4 cells, this resulted in 6 data sets with 12, 24, 36, 48, 64, or 80 trials per participant.
+I simulated these data based on real participant data from @alister2022. There were two main manipulations in this study: 2 consensus direction (i.e., whether the members of the consensus were arguing for or against the claim) X 2 consensus independence (i.e., whether the members of the consensus all shared the same primary source, or all shared different sources). This means there were four "cells" in the experiment. For each cell, I calculated the mean and standard deviation belief update (the difference between their 1-100 belief in the claim before versus after seeing the consensus). Using these means and standard deviations, I simulated either 3, 6, 9, 12, 16, or 20 trials per cell. Because there were 4 cells, this resulted in 6 data sets with 12, 24, 36, 48, 64, or 80 trials per participant.
 
 ```         
 ```
@@ -52,7 +54,7 @@ The general goal here was to see at which point increasing more trials does not 
 ```{r}
 # load combined output
 load(here("simulation/output/all-output-adjusted.Rdata"))
-n <- length(unique(all_output$ps))
+n <- length(unique(all_output$participants))
 
 # Figure out which data sets still contained NAs despite correcting for instances where sd = 0 in real data. 
 all_NA <- NULL
@@ -66,33 +68,46 @@ for (i in 1:n) {
   all_NA <-rbind(all_NA, d_iteration)
 }
 
-na_subjects <- all_NA[all_NA[,"has_na"]==1,]
-subjects_not_analysed <- c(na_subjects[,"p"], 58) # models didn't run on p58 (index 44) for some reason
-
-# filter subjects from all_output
-all_output <- all_output %>%
-  filter(!ps %in% subjects_not_analysed)
+# na_subjects <- all_NA[all_NA[,"has_na"]==1,]
+# subjects_not_analysed <- c(na_subjects[,"p"]) 
+# 
+# # filter subjects from all_output
+# all_output <- all_output %>%
+#   filter(!ps %in% subjects_not_analysed)
 
 # calculate new n with participants removed
-adjusted_n <- length(unique(all_output$ps))
+adjusted_n <- length(unique(all_output$participants))
 ```
 
 ## Number of participants best fit to the alternative model by the number of trials
 
 Using LOOIC, this analysis compared which participants were best fit to the alternative model versus the null model.
 
+The red line indicates a very rough estimate for the number of participants we thought might be best fit by an alternative model. We calculated this by participants who consistently had responses in one source dependence condition higher than their median response (so the number of participants who had \> 50% of their responses for one kind of source larger than the median score).
+
 ```{r}
 # see how many people were best fit by the alternative model as a function of n trials. 
 alt <- all_output %>%
   filter(best_model == "alt")
 
+trials_40 <- all_output %>%
+  filter(n_trials == 40)
+
+p_types <- table(trials_40$type)
+
+n_dep <- sum(p_types[grep("dep", names(p_types))])
+n_ind <- sum(p_types[grep("ind", names(p_types))])
+predicted_alt <- n_dep+n_ind
+
 alt %>%
   group_by(n_trials) %>%
+  mutate(predicted_alt = predicted_alt) %>%
   summarise(n = n()) %>%
   ggplot(aes(x = n_trials, y = n, group = 1)) +
   ylim(0,adjusted_n)+
   geom_col()+
-  geom_line()
+  geom_line()+
+  geom_line(aes(y = predicted_alt), colour = "red")
 ```
 
 ## Number of participants with 95% credible estimates on the independence parameter
@@ -114,10 +129,12 @@ credible_estimates_89 <- all_output %>%
 credible_estimates_95 %>%
   group_by(n_trials) %>%
   summarise(n = n()) %>%
+  mutate(predicted_alt = predicted_alt) %>%
   ggplot(aes(x = n_trials, y = n, group = 1)) +
   ylim(0,adjusted_n)+
   geom_col()+
-  geom_line()
+  geom_line()+
+  geom_line(aes(y = predicted_alt), colour = "red")
 
 ```
 
@@ -127,12 +144,14 @@ It has been argued that a 95% credible interval is not actually the most appropr
 
 ```{r}
 credible_estimates_89 %>%
+  mutate(predicted_alt = predicted_alt) %>%
   group_by(n_trials) %>%
   summarise(n = n()) %>%
   ggplot(aes(x = n_trials, y = n, group = 1)) +
   ylim(0,adjusted_n)+
   geom_col()+
-  geom_line()
+  geom_line()+
+  geom_line(aes(y = predicted_alt), colour = "red")
 ```
 
 ## Looking at whether people had a preference for source diversity or repetition
@@ -155,17 +174,24 @@ sum_neg <- credible_estimates_89 %>%
   summarise(count= sum(negative)) %>%
   mutate(sign = "Participants favouring repetition")
 
-sum <- bind_rows(sum_pos, sum_neg)
 
-sum %>% 
+sum <- bind_rows(sum_pos, sum_neg) %>%
+    mutate(estimated_max = case_when(
+    sign == "Participants favouring diversity" ~ n_ind, 
+    sign == "Participants favouring repetition" ~ n_dep
+  )) 
+
+
+sum %>%
   ggplot(aes(x = n_trials, y = count, group = 1)) +
   ylim(0,adjusted_n)+
   geom_col()+
   geom_line()+
+  geom_line(aes(y = estimated_max), colour = "red")+
   facet_wrap(~sign)+
   theme_bw()
 ```
 
-I'm not sure if this tells us much about experimental power, but interesting to see that in the simulated data at least, there different strategies are split pretty evenly. It is possible that the repetition effects are smaller, which is why there is a bigger difference in n as a function of trials.
+It looks like with 40 trials, we get pretty close to the maximum estimate for each condition. It's a bit worse for the independence condition, but based on the trend it doesn't really look like adding more trials will result in more people having credible estimates.
 
 # 

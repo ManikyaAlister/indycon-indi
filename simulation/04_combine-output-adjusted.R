@@ -4,11 +4,11 @@ library(tidyverse)
 library(brms)
 
 load(here("simulation/data/generating_params_adjusted.Rdata"))
-participants <- unique(generating_params$uid_num)
+participants <- unique(generating_params$uid)
 n <- length(participants)
 
 participant_types <- generating_params %>% 
-  group_by(uid_num) %>%
+  group_by(uid) %>%
   summarise(p_type)
 
 models = c("null", "alt")
@@ -44,15 +44,16 @@ for (j in all_trials_per_cell){
     # }
     print(paste0("Participant ", i))
     load(here(paste0("simulation/output/P",i,"-output-",n_trials,"-trials-simdata-adjusted.Rdata")))
+    id <- participants[i]
     null_looic[i] <- loo_null$estimates["looic",1]
     alt_looic[i] <- loo_alt$estimates["looic",1]
     ind_estimate[i] <- sum_alt$fixed["nSources_A4","Estimate"]
     lower95[i] <- sum_alt$fixed["nSources_A4","l-95% CI"]
     upper95[i] <- sum_alt$fixed["nSources_A4","u-95% CI"]
     best_model[i] <- models[which.min(c(loo_null$estimates["looic",1], loo_alt$estimates["looic",1]))]
-    ps[i] <- p
-    subjs[i]<-i
-    gd <- generating_params %>% filter(uid_num == uid)
+    #ps[i] <- p
+    #subjs[i]<-i
+    gd <- generating_params %>% filter(uid == id)
     type[i] <- unique(gd$p_type)
     posterior_sample <- as_draws_df(alt)
     CI_89 <- quantile(posterior_sample$b_nSources_A4, probs = c(0.055, 0.945))
@@ -61,7 +62,7 @@ for (j in all_trials_per_cell){
 
   }
   
-  output <- cbind(null_looic, alt_looic, best_model, ind_estimate, lower95,upper95,lower89,upper89,ps, type, n_trials)
+  output <- cbind(null_looic, alt_looic, best_model, ind_estimate, lower95,upper95,lower89,upper89,ps, type, n_trials, participants)
   all_output <- rbind(all_output, output)
 }
 
