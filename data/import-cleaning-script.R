@@ -35,7 +35,7 @@ claim_info <- data.frame(
 print(data)
 
 
-RAW_DATA_FILE <- "data/raw/results-t1.json";
+RAW_DATA_FILE <- "data/raw/results.json";
 
 # load data
 d_json <- read_json(here(RAW_DATA_FILE))
@@ -299,10 +299,10 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
 }
 
 # indicate whether 
-all_complete <- FALSE
+all_complete <- TRUE
 
 all_data <- cleaning_fun(d_json, all_complete = all_complete)
-#save(all_data, file = here("data/clean/all_data_clean.Rdata"))
+save(all_data, file = here("data/clean/all_data_clean.Rdata"))
 
 just_data <- all_data[[1]]
 accuracy_data <- all_data[[2]]
@@ -324,7 +324,13 @@ median_time <- median(time$time)
 
 paste0("It took participants a median of ", median_time, " minutes to complete the study")
 
-s <- just_data %>%
-  filter(PROLIFIC_PID == "656f042cc31f84842ad587e4")
+checkParticipant = function(id){
+  d <- just_data %>%
+    filter(PROLIFIC_PID == id)
+  d
+}
+
+#check <- checkParticipant("656f042cc31f84842ad587e4")
+
 
 
