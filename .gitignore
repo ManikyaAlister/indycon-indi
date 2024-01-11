@@ -3,7 +3,7 @@ slurm_output/*
 
 # model output files
 simulation/output/*
-analysis/02_output/*
+analyses/02_output/*
 
 # History files
 .Rhistory
