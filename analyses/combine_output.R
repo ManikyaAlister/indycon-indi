@@ -3,7 +3,7 @@ library(here)
 library(brms)
 
 models <- c("indi-prior", "indi-prior-consensus")
-n_sub <- 1
+n_sub <- 2
 model_details <- NULL
 excluded_conditions <- c("contested", "dependent")
 
@@ -36,7 +36,7 @@ getModelOutput <- function(model_details){
   # load output file
   load(here(
     paste0(
-      "analysis/02_output/P",
+      "analyses/02_output/P",
       participant,
       "-",
       model,
@@ -86,6 +86,4 @@ model_comparison <- model_output %>%
   ) %>%
   mutate(looic_diff = looic_null - looic_alt)
 
-
-model
 
