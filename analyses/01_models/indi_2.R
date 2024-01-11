@@ -9,7 +9,7 @@ library(brms, lib.loc = lib)
 model <- "indi-prior-consensus"
 
 # get participant number from environment (defined when running job_array script)
-subject < commandArgs(trailingOnly = TRUE)
+subject <- commandArgs(trailingOnly = TRUE)
 
 # load participant data
 load(here(paste0("data/clean/P", subject, ".Rdata")))
