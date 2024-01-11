@@ -29,5 +29,5 @@ for (remove in conditions_to_remove) {
   output <- brm(post_adjusted ~ pre_adjusted, data = filtered_data)
   
   # save output and other participant info
-  save(subject, output, model, remove, file = here(paste0("analysis/02_output/P",subject,"-",model,"-rm-",remove,".Rdata")))
+  save(subject, output, model, remove, file = here(paste0("analyses/02_output/P",subject,"-",model,"-rm-",remove,".Rdata")))
 }
