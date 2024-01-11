@@ -1,0 +1,5 @@
+For efficiency I'm running the models in parallel by submitting a separate job for each participant and model combination (defined in job_array.txt). If I didn't do this, it would take much longer to run, since BRMS models can be pretty. slow, and I have a lot of models and participants. For people not familiar with this method though, this could be confusing. 
+
+To make things further complicated (but much faster), I send these models to my university's High Performance Computer (HPC), as it allows me to run hundreds of jobs in parallel, which I wouldn't be able to do locally. This means that my model scripts probably aren't going to run on your machine in their current form.
+
+Instead, you will need to adjust them so that the participant can be accessed. One simple way, would be wrapping each modelling script within a "for" loop. 
