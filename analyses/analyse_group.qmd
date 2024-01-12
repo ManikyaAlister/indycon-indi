@@ -1,0 +1,108 @@
+---
+title: "Group Level Analyses"
+author: "Manikya Alister"
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+editor: visual
+---
+
+```{r}
+#| include = FALSE
+library(here)
+library(tidyverse)
+```
+
+```{r}
+load(here("data/derived/model_comparison.Rdata"))
+load(here("data/clean/all_data_clean.Rdata"))
+data <- all_data[[1]] %>%
+    mutate(update = post_adjusted - pre_adjusted) 
+
+d_independence <- data %>% 
+  filter(consensus != "contested")
+```
+
+# What are the average  belief updates for each claim type? 
+
+```{r}
+mean_updates <- d_independence %>%
+  group_by(claim_type, consensus) %>%
+  summarise(mean_update = mean(update),
+    se_update = sd(update) / sqrt(n())
+)
+
+mean_updates %>% 
+  ggplot(aes(x = claim_type, y = mean_update, fill = consensus)) + 
+  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
+  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
+                position = position_dodge(0.9), width = 0.2) +
+  geom_jitter(data = d_independence, aes(x = claim_type, y = update, colour = consensus), 
+              position = position_jitterdodge(), alpha = 0.2) +
+  ylim(-50, 100) +
+  labs(title = "",
+       x = "Claim Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_classic()
+
+```
+
+# What are the average deltas (independent - dependent) for each claim type? 
+
+```{r}
+deltas_claim_type <- d_independence %>% 
+  filter(consensus != "contested") %>%
+  pivot_wider(names_from = consensus, values_from = update) %>%
+  group_by(claim_type) %>%
+  summarise(delta = mean(independent, na.rm = TRUE)-mean(dependent, na.rm = TRUE))
+
+deltas_claim_type %>% 
+  ggplot(aes(x = claim_type, y = delta))+
+  geom_col(fill = "seagreen")+
+  theme_classic()+
+  labs(x = "Claim Type", y = "Delta (Independent - Dependent)")
+```
+
+# Modelling
+
+```{r}
+# load output 
+load(here("data/derived/group_output_combined.Rdata"))
+
+```
+
+## Model Comparison 
+
+### Excluding contested condition (independent v dependent) 
+
+```{r}
+model_LOOICs %>%
+  filter(excluded_condition == "contested") %>%
+  mutate(model_rank = rank(all_looic))
+```
+
+### Excluding dependent condition (independent v contested)
+
+```{r}
+model_LOOICs %>%
+  filter(excluded_condition == "dependent") %>%
+  mutate(model_rank = rank(all_looic)) 
+```
+
+## Estimates
+
+### Excluding contested condition (independent v dependent) 
+
+```{r}
+load(here("analyses/02_output/group-prior-consensusXclaim-rm-contested.Rdata"))
+summary(output)
+
+```
+
+### Excluding dependent condition (independent v contested)
+
+```{r}
+load(here("analyses/02_output/group-prior-consensusXclaim-rm-dependent.Rdata"))
+summary(output)
+```
