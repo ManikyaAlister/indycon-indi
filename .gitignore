@@ -4,6 +4,7 @@ slurm_output/*
 # model output files
 simulation/output/*
 analyses/02_output/*
+data/derived/group_output_combined.Rdata
 
 # History files
 .Rhistory
