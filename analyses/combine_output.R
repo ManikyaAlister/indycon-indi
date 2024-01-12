@@ -3,8 +3,7 @@ library(here)
 library(brms)
 
 models <- c("indi-prior", "indi-prior-consensus")
-n_sub <- 2
-model_details <- NULL
+n_sub <- 58
 excluded_conditions <- c("contested", "dependent")
 
 model_details <- expand.grid(subject = 1:n_sub, model = models, excluded_condition = excluded_conditions)
@@ -24,7 +23,7 @@ getModelOutput <- function(model_details){
     names(model_details) <- vec_names
   }
   
-  participant <- model_details["subject"]
+  participant <- as.numeric(model_details["subject"])
   model <- model_details["model"]
   remove <- model_details["excluded_condition"]
   
@@ -84,6 +83,35 @@ model_comparison <- model_output %>%
     looic_null = maxNA(looic_null),
     looic_alt = maxNA(looic_alt)
   ) %>%
-  mutate(looic_diff = looic_null - looic_alt)
+  mutate(looic_diff = looic_null - looic_alt,
+         best_model = ifelse(looic_diff > 0, "Alternative Model", "Null Model"))
+
+save(model_comparison, file = here("data/derived/model_comparison.Rdata"))
 
 
+model_comparison %>%
+  filter(excluded_condition == "contested") %>%
+  ggplot(aes(x = reorder(as.character(subject), consensus_estimate), y = consensus_estimate, colour = best_model)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
+  labs(title = "Model Comparison: Prior Only v Independence. Contested Data Removed",
+       x = "Subject",
+       y = "Consensus Estimate") +
+  geom_hline(yintercept = 0, colour = "black")+
+  theme_bw() +
+    theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank()) 
+
+
+model_comparison %>%
+  filter(excluded_condition == "dependent") %>%
+  ggplot(aes(x = reorder(as.character(subject), consensus_estimate), y = consensus_estimate, colour = best_model)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
+  labs(title = "Model Comparison: Prior Only v Independent. Dependent Data Removed",
+       x = "Subject",
+       y = "Consensus Estimate") +
+  geom_hline(yintercept = 0, colour = "black")+
+  theme_bw() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) 

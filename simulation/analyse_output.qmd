@@ -16,7 +16,7 @@ library(tidyverse)
 library(brms)
 ```
 
-# BRMS Simulation 
+# BRMS Simulation
 
 How many trials do we need to be able to detect an effect of source independence at the individual level?
 
