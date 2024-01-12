@@ -1,0 +1,25 @@
+rm(list = ls())
+library(here)
+library(brms)
+
+models <- c("group-prior", "group-prior-consensus", "group-prior-consensus-claim", "group-prior-consensusXclaim")
+excluded_conditions <- c("contested", "dependent")
+
+model_details <- expand.grid(model = models, excluded_condition = excluded_conditions)
+all_output <- NULL
+all_looic <- NULL
+for ( i in 1:length(model_details[,1])){
+  print(i)
+  output <- NULL
+  looic <- NULL
+  model <- model_details[i,"model"]
+  excluded_condition <- model_details[i,"excluded_condition"]
+  load(here(paste0("analyses/02_output/",model,"-rm-",excluded_condition,".Rdata")))
+  all_output[[i]] = list(model, excluded_condition, output)
+  looic <- loo(output)$estimates["looic","Estimate"]
+  all_looic[i] <- looic
+}
+
+model_LOOICs <- cbind(model_details, all_looic)
+
+save(all_looic,all_output, model_LOOICs, file = here("data/derived/group_output_combined.Rdata"))

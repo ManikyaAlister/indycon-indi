@@ -138,23 +138,23 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
     
     session_number <- d_participant[["session_number"]]
     
-    if (session_number == 2){
-      self_report_strategy <- d_participant[["followUp_strategy"]]
-      self_report_free <- d_participant[["followUp_freeText"]]
-      # store the follow up strategies 
-      follow_ups <- rbind(follow_ups, c(self_report_strategy, self_report_free))
-    }
-    
     accuracy_info <- c(mean_accuracy,prolific_id)
     
-    print(paste0("Accuracy: ", mean_accuracy, " Participant: ", prolific_id))
+    #print(paste0("Accuracy: ", mean_accuracy, " Participant: ", prolific_id))
 
     if (mean_accuracy < .9){
       rm_accuracy <- rbind(rm_accuracy, accuracy_info)
       next
     }
     
-  
+    if (session_number == 2){
+      self_report_strategy <- d_participant[["followUp_strategy"]]
+      if(is.null(self_report_strategy)) self_report_strategy <- NA
+     self_report_free <- d_participant[["followUp_freeText"]]
+      # store the follow up strategies 
+      follow_ups <- rbind(follow_ups, c(prolific_id, self_report_strategy, self_report_free))
+    }
+    
     getTrialReadTimes <- function(read_time){
       times <- as.numeric(strsplit(read_time, ":", fixed = TRUE)[[1]])
       mean_time <- mean(times)/60000
@@ -284,16 +284,22 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
   }
 
   if (all_complete){
-    colnames(follow_ups) <- c("self_report_strategy", "free_text")
+    colnames(follow_ups) <- c("PROLIFIC_PID", "self_report_strategy", "free_text")
+    follow_ups <- as.data.frame(follow_ups)
   }
   # add numeric id column for each participant
   all_data$participant <- as.numeric(factor(all_data$PROLIFIC_PID, levels = unique(all_data$PROLIFIC_PID)))
   
+  # do the same for  follow up questions, making sure that it matches the behavioural data. 
+  follow_ups$participant <-  as.numeric(factor(follow_ups$PROLIFIC_PID, levels = unique(all_data$PROLIFIC_PID)))
+  
   # Reordering the dataframe by 'id' column
   all_data <- all_data[order(all_data$participant), ]
+  follow_ups <- follow_ups[order(follow_ups$participant),]
   
   # Moving the 'id' column to the front
   all_data <- all_data[c("participant", names(all_data)[-which(names(all_data) == "participant")])]
+  follow_ups <- follow_ups[c("participant", names(follow_ups)[-which(names(follow_ups) %in% c("participant", "PROLIFIC_PID"))])]
   
   list(all_data, rm_accuracy, rm_drop_out, follow_ups)
 }
