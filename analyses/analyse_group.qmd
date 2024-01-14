@@ -22,9 +22,14 @@ data <- all_data[[1]] %>%
 
 d_independence <- data %>% 
   filter(consensus != "contested")
+
+d_consensus_only <- data %>% 
+  filter(consensus != "dependent")
 ```
 
 # What are the average  belief updates for each claim type? 
+
+### Independent v Dependent consensus 
 
 ```{r}
 mean_updates <- d_independence %>%
@@ -46,6 +51,29 @@ mean_updates %>%
        y = "Mean Update (Post - Prior)") +
   theme_classic()
 
+```
+
+### Contested v Independent Consensus 
+
+```{r}
+mean_updates_co <- d_consensus_only %>%
+  group_by(claim_type, consensus) %>%
+  summarise(mean_update = mean(update),
+    se_update = sd(update) / sqrt(n())
+)
+
+mean_updates_co %>% 
+  ggplot(aes(x = claim_type, y = mean_update, fill = consensus)) + 
+  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
+  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
+                position = position_dodge(0.9), width = 0.2) +
+  geom_jitter(data = d_consensus_only, aes(x = claim_type, y = update, colour = consensus), 
+              position = position_jitterdodge(), alpha = 0.2) +
+  ylim(-50, 100) +
+  labs(title = "",
+       x = "Claim Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_classic()
 ```
 
 # What are the average deltas (independent - dependent) for each claim type? 
@@ -106,3 +134,7 @@ summary(output)
 load(here("analyses/02_output/group-prior-consensusXclaim-rm-dependent.Rdata"))
 summary(output)
 ```
+
+Initial thoughts. No group level effects of independence when looking at the estimate, but according to model comparison it's still better than the null. No independence X claim type interaction despite hinting showing possible signs in the figures.
+
+Looks like there's an interaction between claim type X consensus, such that people are more convinced by a consensus generally under certain kinds of claims.
