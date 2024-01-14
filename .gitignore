@@ -28,6 +28,11 @@ simulation/output/*
 # RStudio files
 .Rproj.user/
 
+# DS store
+.DS_Store
+data/.DS_Store
+
+
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
