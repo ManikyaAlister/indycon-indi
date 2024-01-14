@@ -1,9 +1,10 @@
 rm(list = ls())
 library(here)
+library(tidyverse)
 library(brms)
 
 models <- c("indi-prior", "indi-prior-consensus")
-n_sub <- 58
+n_sub <- 75
 excluded_conditions <- c("contested", "dependent")
 
 model_details <- expand.grid(subject = 1:n_sub, model = models, excluded_condition = excluded_conditions)
