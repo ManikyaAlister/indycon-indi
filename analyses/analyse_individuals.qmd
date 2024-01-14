@@ -22,7 +22,7 @@ data <- all_data[[1]] %>%
     mutate(update = post_adjusted - pre_adjusted) 
 ```
 
-# How many have a preference for diverse sources versus repeated sources, and how many aren't sensitive at all? 
+# How many have a preference for diverse sources versus repeated sources, and how many aren't sensitive at all?
 
 ```{r}
 
@@ -81,7 +81,7 @@ deltas_independence %>%
   
 ```
 
-# How many people aren't sensitive to a consensus at all, regardless of independence? 
+# How many people aren't sensitive to a consensus at all, regardless of independence?
 
 ```{r}
 
@@ -101,7 +101,7 @@ model_comparison %>%
 
 ```
 
-# What strategy did people *say* they used?  
+# What strategy did people *say* they used?
 
 Comparing their behavior with their self-reported preference.
 
@@ -120,7 +120,7 @@ Most people said they they were more convinced by diverse sources, even though t
 
 Could it be that our model comparison is just penalizing too harshly? A lot of people show positive independence estimate in the first figure, even though the for most of them the model comparison preferred the null and the credible intervals were overlapping with zero.
 
-## Proportion of people who said they preferred diverse sources in the full sample, versus those who had a positive beta indicating a (not necessarily credible) behavioral preference for diversity. 
+## Proportion of people who said they preferred diverse sources in the full sample, versus those who had a positive beta indicating a (not necessarily credible) behavioral preference for diversity.
 
 ```{r}
 
@@ -143,6 +143,6 @@ barplot(prop_diverse_comparison, ylim = c(0,1))
 
 ## 
 
-Initial thoughts. Behaviorally, a small number of people preferred either repeated or diverse sources, with more people tending towards diversity. Basically everyone showed a general consensus effect (when comparing comtested to independent consensus).
+Initial thoughts. Behaviorally, a small number of people preferred either repeated or diverse sources, with more people tending towards diversity. Basically everyone showed a general consensus effect (when comparing contested to independent consensus).
 
 Despite these behavioral results, by far the most common self reported strategy was a preference for diverse sources. A few people said that a consensus was all that they cared about (regardless of independence) and even fewer said that they proffered the same repeated source. This might suggest a lack of insight into what people actually find convincing. It could also suggest our model comparison was too biased towards null results, but an initial investigation suggests that not to be the case.
