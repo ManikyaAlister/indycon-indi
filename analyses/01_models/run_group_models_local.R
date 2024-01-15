@@ -10,9 +10,6 @@ library(doParallel)
 # define model name 
 models <- c("group-prior", "group-prior-consensus", "group-prior-consensus-claim", "group-prior-consensusXclaim")
 
-# get participant number from environment (defined when running job_array script)
-subject <- commandArgs(trailingOnly = TRUE)
-
 # load participant data
 load(here(paste0("data/clean/all_data_clean.Rdata")))
 data <- all_data[[1]]

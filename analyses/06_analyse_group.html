@@ -110,11 +110,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">update =</span> post_adjusted <span class="sc">-</span> pre_adjusted) </span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>d_independence <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(consensus <span class="sc">!=</span> <span class="st">"contested"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(consensus <span class="sc">!=</span> <span class="st">"contested"</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>d_consensus_only <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(consensus <span class="sc">!=</span> <span class="st">"dependent"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <section id="what-are-the-average-belief-updates-for-each-claim-type" class="level1">
 <h1>What are the average belief updates for each claim type?</h1>
+<section id="independent-v-dependent-consensus" class="level3">
+<h3 class="anchored" data-anchor-id="independent-v-dependent-consensus">Independent v Dependent consensus</h3>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -155,25 +160,64 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
+<section id="contested-v-independent-consensus" class="level3">
+<h3 class="anchored" data-anchor-id="contested-v-independent-consensus">Contested v Independent Consensus</h3>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>mean_updates_co <span class="ot">&lt;-</span> d_consensus_only <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(claim_type, consensus) <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_update =</span> <span class="fu">mean</span>(update),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">se_update =</span> <span class="fu">sd</span>(update) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">n</span>())</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'claim_type'. You can override using the
+`.groups` argument.</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>mean_updates_co <span class="sc">%&gt;%</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> claim_type, <span class="at">y =</span> mean_update, <span class="at">fill =</span> consensus)) <span class="sc">+</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="fl">0.2</span>, <span class="at">alpha =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> mean_update <span class="sc">-</span> se_update, <span class="at">ymax =</span> mean_update <span class="sc">+</span> se_update), </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="fl">0.9</span>), <span class="at">width =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">data =</span> d_consensus_only, <span class="fu">aes</span>(<span class="at">x =</span> claim_type, <span class="at">y =</span> update, <span class="at">colour =</span> consensus), </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">position =</span> <span class="fu">position_jitterdodge</span>(), <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="dv">50</span>, <span class="dv">100</span>) <span class="sc">+</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">""</span>,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Claim Type"</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Mean Update (Post - Prior)"</span>) <span class="sc">+</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 18 rows containing missing values (`geom_point()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="analyse_group_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
 <section id="what-are-the-average-deltas-independent---dependent-for-each-claim-type" class="level1">
 <h1>What are the average deltas (independent - dependent) for each claim type?</h1>
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>deltas_claim_type <span class="ot">&lt;-</span> d_independence <span class="sc">%&gt;%</span> </span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(consensus <span class="sc">!=</span> <span class="st">"contested"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> consensus, <span class="at">values_from =</span> update) <span class="sc">%&gt;%</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(claim_type) <span class="sc">%&gt;%</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">delta =</span> <span class="fu">mean</span>(independent, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)<span class="sc">-</span><span class="fu">mean</span>(dependent, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>deltas_claim_type <span class="sc">%&gt;%</span> </span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> claim_type, <span class="at">y =</span> delta))<span class="sc">+</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"seagreen"</span>)<span class="sc">+</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()<span class="sc">+</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Claim Type"</span>, <span class="at">y =</span> <span class="st">"Delta (Independent - Dependent)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>deltas_claim_type <span class="ot">&lt;-</span> d_independence <span class="sc">%&gt;%</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(consensus <span class="sc">!=</span> <span class="st">"contested"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> consensus, <span class="at">values_from =</span> update) <span class="sc">%&gt;%</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(claim_type) <span class="sc">%&gt;%</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">delta =</span> <span class="fu">mean</span>(independent, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)<span class="sc">-</span><span class="fu">mean</span>(dependent, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>deltas_claim_type <span class="sc">%&gt;%</span> </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> claim_type, <span class="at">y =</span> delta))<span class="sc">+</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"seagreen"</span>)<span class="sc">+</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()<span class="sc">+</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Claim Type"</span>, <span class="at">y =</span> <span class="st">"Delta (Independent - Dependent)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="analyse_group_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+<p><img src="analyse_group_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
@@ -182,8 +226,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load output </span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"data/derived/group_output_combined.Rdata"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load output </span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"data/derived/group_output_combined.Rdata"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <section id="model-comparison" class="level2">
@@ -193,16 +237,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>model_LOOICs <span class="sc">%&gt;%</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(excluded_condition <span class="sc">==</span> <span class="st">"contested"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">model_rank =</span> <span class="fu">rank</span>(all_looic))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model_LOOICs <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(excluded_condition <span class="sc">==</span> <span class="st">"contested"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">model_rank =</span> <span class="fu">rank</span>(all_looic))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>                        model excluded_condition all_looic model_rank
-1                 group-prior          contested  25981.34          4
-2       group-prior-consensus          contested  25976.19          3
-3 group-prior-consensus-claim          contested  25538.65          1
-4 group-prior-consensusXclaim          contested  25540.92          2</code></pre>
+1                 group-prior          contested  26951.65          4
+2       group-prior-consensus          contested  26944.93          3
+3 group-prior-consensus-claim          contested  26493.19          1
+4 group-prior-consensusXclaim          contested  26496.49          2</code></pre>
 </div>
 </div>
 </section>
@@ -211,16 +255,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>model_LOOICs <span class="sc">%&gt;%</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(excluded_condition <span class="sc">==</span> <span class="st">"dependent"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">model_rank =</span> <span class="fu">rank</span>(all_looic)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>model_LOOICs <span class="sc">%&gt;%</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(excluded_condition <span class="sc">==</span> <span class="st">"dependent"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">model_rank =</span> <span class="fu">rank</span>(all_looic)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>                        model excluded_condition all_looic model_rank
-1                 group-prior          dependent  26689.00          4
-2       group-prior-consensus          dependent  25665.46          3
-3 group-prior-consensus-claim          dependent  25598.01          2
-4 group-prior-consensusXclaim          dependent  25372.54          1</code></pre>
+1                 group-prior          dependent  27692.60          4
+2       group-prior-consensus          dependent  26632.93          3
+3 group-prior-consensus-claim          dependent  26564.61          2
+4 group-prior-consensusXclaim          dependent  26336.35          1</code></pre>
 </div>
 </div>
 </section>
@@ -232,61 +276,43 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"analyses/02_output/group-prior-consensusXclaim-rm-contested.Rdata"</span>))</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(output)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"analyses/02_output/group-prior-consensusXclaim-rm-contested.Rdata"</span>))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>getCredibleInt <span class="ot">&lt;-</span> <span class="cf">function</span>(output, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.055</span>, <span class="fl">0.945</span>), <span class="at">decimals =</span> <span class="dv">3</span>){ <span class="co"># default is 89% credible interval </span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  posterior_sample <span class="ot">&lt;-</span> <span class="fu">as_draws_df</span>(output)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># only include fixed effects</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  posterior_sample <span class="ot">&lt;-</span> posterior_sample <span class="sc">%&gt;%</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="fu">starts_with</span>(<span class="st">"b_"</span>))</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  interval <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">round</span>(<span class="fu">apply</span>(posterior_sample, <span class="dv">2</span>, <span class="cf">function</span>(x) <span class="fu">quantile</span>(x, <span class="at">probs =</span> probs)),<span class="dv">3</span>))</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(interval) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Lower-CI"</span>, <span class="st">"Upper-CI"</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  interval</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>getParamDetails <span class="ot">&lt;-</span> <span class="cf">function</span>(output){</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  intervals_89 <span class="ot">&lt;-</span> <span class="fu">getCredibleInt</span>(output)</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  sum_output <span class="ot">&lt;-</span> <span class="fu">summary</span>(output)</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  details <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">round</span>(sum_output<span class="sc">$</span>fixed[,<span class="st">"Estimate"</span>],<span class="dv">3</span>), intervals_89)</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(details) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Estimate"</span>, <span class="st">"Lower"</span>, <span class="st">"Upper"</span>)</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  details</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a><span class="fu">getParamDetails</span>(output)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Dropping 'draws_df' class as required metadata was removed.</code></pre>
+</div>
 <div class="cell-output cell-output-stdout">
-<pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
-Formula: post_adjusted ~ (1 | participant) + pre_adjusted + consensus * claim_type 
-   Data: filtered_data (Number of observations: 3000) 
-  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
-         total post-warmup draws = 4000
-
-Group-Level Effects: 
-~participant (Number of levels: 75) 
-              Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sd(Intercept)     8.72      0.80     7.33    10.51 1.00      874     1529
-
-Population-Level Effects: 
-                                                    Estimate Est.Error l-95% CI
-Intercept                                              43.50      1.48    40.62
-pre_adjusted                                            0.66      0.01     0.64
-consensusindependent                                    1.65      1.24    -0.78
-claim_typeKnowableFacts                                -3.36      1.23    -5.75
-claim_typeUnknowableExpert                            -13.07      1.26   -15.50
-claim_typeUnknowablePreference                        -15.11      1.25   -17.53
-consensusindependent:claim_typeKnowableFacts            0.95      1.77    -2.37
-consensusindependent:claim_typeUnknowableExpert         0.90      1.75    -2.45
-consensusindependent:claim_typeUnknowablePreference    -2.06      1.74    -5.51
-                                                    u-95% CI Rhat Bulk_ESS
-Intercept                                              46.40 1.00      828
-pre_adjusted                                            0.69 1.00     7945
-consensusindependent                                    4.03 1.00     1674
-claim_typeKnowableFacts                                -0.95 1.00     2184
-claim_typeUnknowableExpert                            -10.66 1.00     2364
-claim_typeUnknowablePreference                        -12.66 1.00     2472
-consensusindependent:claim_typeKnowableFacts            4.37 1.00     2117
-consensusindependent:claim_typeUnknowableExpert         4.28 1.00     1998
-consensusindependent:claim_typeUnknowablePreference     1.39 1.00     2168
-                                                    Tail_ESS
-Intercept                                               1834
-pre_adjusted                                            2794
-consensusindependent                                    2740
-claim_typeKnowableFacts                                 3112
-claim_typeUnknowableExpert                              3109
-claim_typeUnknowablePreference                          3159
-consensusindependent:claim_typeKnowableFacts            3034
-consensusindependent:claim_typeUnknowableExpert         2644
-consensusindependent:claim_typeUnknowablePreference     2936
-
-Family Specific Parameters: 
-      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma    16.86      0.22    16.43    17.30 1.00     7848     2701
-
-Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
-and Tail_ESS are effective sample size measures, and Rhat is the potential
-scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+<pre><code>                                                      Estimate   Lower   Upper
+b_Intercept                                             42.975  40.655  45.383
+b_pre_adjusted                                           0.665   0.647   0.683
+b_consensusindependent                                   1.755  -0.116   3.615
+b_claim_typeKnowableFacts                               -2.997  -4.888  -1.099
+b_claim_typeUnknowableExpert                           -12.833 -14.701 -10.908
+b_claim_typeUnknowablePreference                       -15.028 -16.973 -13.088
+b_consensusindependent:claim_typeKnowableFacts           0.596  -2.022   3.274
+b_consensusindependent:claim_typeUnknowableExpert        0.833  -1.892   3.541
+b_consensusindependent:claim_typeUnknowablePreference   -1.758  -4.380   0.936</code></pre>
 </div>
 </div>
 </section>
@@ -295,63 +321,27 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"analyses/02_output/group-prior-consensusXclaim-rm-dependent.Rdata"</span>))</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(output)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"analyses/02_output/group-prior-consensusXclaim-rm-dependent.Rdata"</span>))</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">getParamDetails</span>(output)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Dropping 'draws_df' class as required metadata was removed.</code></pre>
+</div>
 <div class="cell-output cell-output-stdout">
-<pre><code> Family: gaussian 
-  Links: mu = identity; sigma = identity 
-Formula: post_adjusted ~ (1 | participant) + pre_adjusted + consensus * claim_type 
-   Data: filtered_data (Number of observations: 3000) 
-  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
-         total post-warmup draws = 4000
-
-Group-Level Effects: 
-~participant (Number of levels: 75) 
-              Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sd(Intercept)     3.57      0.46     2.73     4.53 1.00     1955     2669
-
-Population-Level Effects: 
-                                                    Estimate Est.Error l-95% CI
-Intercept                                               9.35      1.17     7.06
-pre_adjusted                                            0.72      0.01     0.69
-consensusindependent                                   33.47      1.20    31.23
-claim_typeKnowableFacts                                 2.12      1.21    -0.23
-claim_typeUnknowableExpert                              6.64      1.17     4.35
-claim_typeUnknowablePreference                          4.34      1.25     1.82
-consensusindependent:claim_typeKnowableFacts           -4.84      1.72    -8.18
-consensusindependent:claim_typeUnknowableExpert       -19.21      1.69   -22.57
-consensusindependent:claim_typeUnknowablePreference   -21.94      1.73   -25.37
-                                                    u-95% CI Rhat Bulk_ESS
-Intercept                                              11.63 1.00     3277
-pre_adjusted                                            0.74 1.00    10229
-consensusindependent                                   35.82 1.00     2230
-claim_typeKnowableFacts                                 4.54 1.00     2995
-claim_typeUnknowableExpert                              8.89 1.00     2933
-claim_typeUnknowablePreference                          6.74 1.00     2910
-consensusindependent:claim_typeKnowableFacts           -1.48 1.00     2655
-consensusindependent:claim_typeUnknowableExpert       -15.89 1.00     2678
-consensusindependent:claim_typeUnknowablePreference   -18.47 1.00     2656
-                                                    Tail_ESS
-Intercept                                               3118
-pre_adjusted                                            2905
-consensusindependent                                    2630
-claim_typeKnowableFacts                                 3186
-claim_typeUnknowableExpert                              3133
-claim_typeUnknowablePreference                          3191
-consensusindependent:claim_typeKnowableFacts            2726
-consensusindependent:claim_typeUnknowableExpert         2950
-consensusindependent:claim_typeUnknowablePreference     2851
-
-Family Specific Parameters: 
-      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sigma    16.44      0.22    16.03    16.87 1.00    10096     2866
-
-Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
-and Tail_ESS are effective sample size measures, and Rhat is the potential
-scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+<pre><code>                                                      Estimate   Lower   Upper
+b_Intercept                                              9.530   7.789  11.268
+b_pre_adjusted                                           0.716   0.698   0.733
+b_consensusindependent                                  32.889  31.047  34.745
+b_claim_typeKnowableFacts                                1.885  -0.031   3.776
+b_claim_typeUnknowableExpert                             6.411   4.553   8.285
+b_claim_typeUnknowablePreference                         4.194   2.336   6.008
+b_consensusindependent:claim_typeKnowableFacts          -4.639  -7.281  -1.994
+b_consensusindependent:claim_typeUnknowableExpert      -18.794 -21.414 -16.145
+b_consensusindependent:claim_typeUnknowablePreference  -21.456 -24.109 -18.820</code></pre>
 </div>
 </div>
+<p>Initial thoughts. No group level effects of independence when looking at the estimate, but according to model comparison it’s still better than the null. No independence X claim type interaction despite hinting showing possible signs in the figures.</p>
+<p>Looks like there’s an interaction between claim type X consensus, such that people are more convinced by a consensus generally under certain kinds of claims.</p>
 </section>
 </section>
 </section>
