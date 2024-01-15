@@ -13,8 +13,11 @@ editor: visual
 #| include = FALSE
 library(here)
 library(tidyverse)
+<<<<<<< HEAD
 library(ggpubr)
 library(RColorBrewer)
+=======
+>>>>>>> de0e661 (by session models)
 ```
 
 ```{r}
@@ -24,7 +27,11 @@ data <- all_data[[1]] %>%
     mutate(update = post_adjusted - pre_adjusted) 
 ```
 
+<<<<<<< HEAD
 # How many have a preference for diverse sources versus repeated sources, and how many aren't sensitive at all?
+=======
+# How many have a preference for diverse sources versus repeated sources, and how many aren't sensitive at all? 
+>>>>>>> de0e661 (by session models)
 
 ```{r}
 
@@ -37,20 +44,37 @@ ordered_subjects <- reorder(as.character(tmp$subject), tmp$consensus_estimate)
 model_comparison_ind <- model_comparison %>%
   filter(excluded_condition == "contested") 
 
+<<<<<<< HEAD
 ind_param_plot <- model_comparison_ind %>%
   ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
   geom_point(aes(shape = best_model), size =3) +
   geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
   labs(title = "Independent Consensus v Dependent Consensus",
        x = "Participant (Ordered by independence parameter, > 0 = more belief in independence, < 0 = more belief in dependence)",
+=======
+model_comparison_ind %>%
+  ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
+  geom_point(aes(shape = best_model)) +
+  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
+  labs(title = "Preference for independence v dependence v no sensitivity",
+       x = "Subject (ordered by independence parameter)",
+>>>>>>> de0e661 (by session models)
        y = "Independence Parameter") +
   geom_hline(yintercept = 0, colour = "black")+
   theme_bw() +
     theme(axis.text.x = element_blank(),
+<<<<<<< HEAD
           axis.ticks.x = element_blank(),
           legend.position = "bottom") 
 
 ind_param_plot
+=======
+<<<<<<<< HEAD:analyses/analyse_individuals.qmd
+          axis.ticks.x = element_blank()) 
+========
+          axis.ticks.x = element_blank(),
+          legend.position = "bottom") 
+>>>>>>> de0e661 (by session models)
 ```
 
 ```{r}
@@ -61,6 +85,7 @@ n_dependent <- sum(model_comparison_ind$best_model == "Alternative Model" & mode
 prop_independent <- round((n_independent/nrow(model_comparison_ind)),2)*100
 prop_dependent <- round((n_dependent/nrow(model_comparison_ind)),2)*100
 
+<<<<<<< HEAD
 prop_independent
 prop_dependent 
 
@@ -103,6 +128,11 @@ model_comparison %>%
     theme(axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           legend.position = "bottom") 
+=======
+
+prop_alt <- round(sum(model_comparison_ind$best_model == "Alternative Model")/nrow(model_comparison_ind),2)*100
+>>>>>>>> de0e661 (by session models):analyses/05_analyse_individuals.qmd
+>>>>>>> de0e661 (by session models)
 ```
 
 `r prop_alt`% of participants were sensitive to independence when reasoning. `r prop_dependent`% of participants were more convinced by a dependent consensus where four different people each shared the same source. `r prop_independent` % of participants were more convinced by an independent consensus where four people shared four different sources.
@@ -136,14 +166,24 @@ d_independence <- data %>%
 deltas_independence %>%
   ggplot(aes(x = factor(participant, levels = ordered_participants), y = delta)) +
     geom_col(fill = "black")+
+<<<<<<< HEAD
   geom_point(data = d_independence, aes(y = update, colour = consensus), alpha = 0.5) +
       theme(axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           legend.position = "bottom") 
+=======
+  geom_point(data = d_independence, aes(y = update, colour = consensus), alpha = 0.5) 
+>>>>>>> de0e661 (by session models)
 
   
 ```
 
+<<<<<<< HEAD
+=======
+<<<<<<<< HEAD:analyses/analyse_individuals.qmd
+# How many people aren't sensitive to a consensus at all, regardless of independence? 
+========
+>>>>>>> de0e661 (by session models)
 ### Correlation between deltas in time one compared to time 2.
 
 ```{r}
@@ -165,6 +205,7 @@ cor(alt_subs$delta_s1, alt_subs$delta_s2)
 
 ```
 
+<<<<<<< HEAD
 ```{r}
 load(here("data/derived/model_comparison_by_session.Rdata"))
 
@@ -272,6 +313,30 @@ ggsave(plot = combined_param_plots, filename = here("analyses/07_Plots/combined-
 ```
 
 # What strategy did people *say* they used?
+=======
+# How many people aren't sensitive to a consensus at all, regardless of independence?
+>>>>>>>> de0e661 (by session models):analyses/05_analyse_individuals.qmd
+
+```{r}
+
+model_comparison %>%
+  filter(excluded_condition == "dependent") %>%
+  ggplot(aes(x = reorder(as.character(subject), consensus_estimate), y = consensus_estimate, colour = best_model)) +
+  #ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
+  labs(title = "Preference for consensus v no preference (contested v independent)",
+       x = "Subject (ordered by consensus parameter)",
+       y = "Consensus Parameter") +
+  geom_hline(yintercept = 0, colour = "black")+
+  theme_bw() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) 
+
+```
+
+# What strategy did people *say* they used?  
+>>>>>>> de0e661 (by session models)
 
 Comparing their behavior with their self-reported preference.
 
@@ -281,6 +346,7 @@ self_report <- as.data.frame(all_data[[4]])
 
 # get just the multiple choice anser
 self_report_mc <- self_report$self_report_strategy
+<<<<<<< HEAD
 #self_report$subject <- 1:length(self_report[,1])
 self_report$coefficient <- model_comparison_ind$consensus_estimate
 
@@ -304,13 +370,22 @@ insight_barplot <- mc_tally_df %>%
   #scale_fill_brewer(palette = "Greens")
 
 
+=======
+self_report$subject <- 1:length(self_report[,1])
+mc_tally <- table(self_report_mc)
+barplot(mc_tally)
+>>>>>>> de0e661 (by session models)
 ```
 
 Most people said they they were more convinced by diverse sources, even though that's not what their behavior showed!
 
 Could it be that our model comparison is just penalizing too harshly? A lot of people show positive independence estimate in the first figure, even though the for most of them the model comparison preferred the null and the credible intervals were overlapping with zero.
 
+<<<<<<< HEAD
 ## Proportion of people who said they preferred diverse sources in the full sample, versus those who had a positive beta indicating a (not necessarily credible) behavioral preference for diversity.
+=======
+## Proportion of people who said they preferred diverse sources in the full sample, versus those who had a positive beta indicating a (not necessarily credible) behavioral preference for diversity. 
+>>>>>>> de0e661 (by session models)
 
 ```{r}
 
@@ -323,7 +398,11 @@ pos_consensus <- model_comparison %>%
   mutate(reported_strategy = self_report[self_report$participant == subject,"self_report_strategy"])
 
 # calculate the proportion of self reported "diverse" participants with a positive beta
+<<<<<<< HEAD
 prop_diverse_pos <- sum(pos_consensus$reported_strategy == "diverse", na.rm = TRUE)/length(pos_consensus$reported_strategy)
+=======
+prop_diverse_pos <- sum(pos_consensus$reported_strategy == "diverse")/length(pos_consensus$reported_strategy)
+>>>>>>> de0e661 (by session models)
 
 # compare both proportions
 prop_diverse_comparison <- c(`Full Sample` = prop_diverse_full, `Positive Beta` = prop_diverse_pos)
@@ -331,6 +410,7 @@ prop_diverse_comparison <- c(`Full Sample` = prop_diverse_full, `Positive Beta` 
 barplot(prop_diverse_comparison, ylim = c(0,1))
 ```
 
+<<<<<<< HEAD
 ```{r}
 model_comparison_ind$self_report <- self_report$self_report_strategy
 
@@ -391,5 +471,10 @@ Two out of the three participants who did not show any standard consensus effect
 ## Initial thoughts
 
 Initial thoughts. Behaviorally, a small number of people preferred either repeated or diverse sources, with more people tending towards diversity. Basically everyone showed a general consensus effect (when comparing contested to independent consensus).
+=======
+## 
+
+Initial thoughts. Behaviorally, a small number of people preferred either repeated or diverse sources, with more people tending towards diversity. Basically everyone showed a general consensus effect (when comparing comtested to independent consensus).
+>>>>>>> de0e661 (by session models)
 
 Despite these behavioral results, by far the most common self reported strategy was a preference for diverse sources. A few people said that a consensus was all that they cared about (regardless of independence) and even fewer said that they proffered the same repeated source. This might suggest a lack of insight into what people actually find convincing. It could also suggest our model comparison was too biased towards null results, but an initial investigation suggests that not to be the case.
