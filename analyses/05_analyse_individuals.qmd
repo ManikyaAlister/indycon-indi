@@ -32,9 +32,10 @@ tmp <- model_comparison %>%
 
 ordered_subjects <- reorder(as.character(tmp$subject), tmp$consensus_estimate)
 
+model_comparison_ind <- model_comparison %>%
+  filter(excluded_condition == "contested") 
 
-model_comparison %>%
-  filter(excluded_condition == "contested") %>%
+model_comparison_ind %>%
   ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
   geom_point(aes(shape = best_model)) +
   geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
@@ -49,8 +50,18 @@ model_comparison %>%
 ```
 
 ```{r}
+n_independent <- sum(model_comparison_ind$best_model == "Alternative Model" & model_comparison_ind$consensus_estimate > 0)
+n_dependent <- sum(model_comparison_ind$best_model == "Alternative Model" & model_comparison_ind$consensus_estimate < 0)
 
+
+prop_independent <- round((n_independent/nrow(model_comparison_ind)),2)*100
+prop_dependent <- round((n_dependent/nrow(model_comparison_ind)),2)*100
+
+
+prop_alt <- round(sum(model_comparison_ind$best_model == "Alternative Model")/nrow(model_comparison_ind),2)*100
 ```
+
+`r prop_alt`% of participants were sensitive to independence when reasoning. `r prop_dependent`% of participants were more convinced by a dependent consensus where four different people each shared the same source. `r prop_independent` % of participants were more convinced by an independent consensus where four people shared four different sources.
 
 ## Deltas and actual data
 
@@ -87,6 +98,27 @@ deltas_independence %>%
           legend.position = "bottom") 
 
   
+```
+
+### Correlation between deltas in time one compared to time 2.
+
+```{r}
+deltas_ind_by_session <- data %>% 
+  filter(consensus != "contested") %>%
+  pivot_wider(names_from = consensus, values_from = update) %>%
+  group_by(participant, session_number) %>%
+  summarise(delta = median(independent, na.rm = TRUE)-median(dependent, na.rm = TRUE)) %>%
+  pivot_wider(names_from = session_number, values_from = delta) 
+
+model_comparison_ind$delta_s1 <- deltas_ind_by_session$`1`
+model_comparison_ind$delta_s2 <- deltas_ind_by_session$`2`
+
+alt_subs <- model_comparison_ind %>%
+  filter(best_model == "Alternative Model")
+
+plot(alt_subs$delta_s1, alt_subs$delta_s2)
+cor(alt_subs$delta_s1, alt_subs$delta_s2)
+
 ```
 
 # How many people aren't sensitive to a consensus at all, regardless of independence?

@@ -12,6 +12,7 @@ editor: visual
 #| include = FALSE
 library(here)
 library(tidyverse)
+library(brms)
 ```
 
 ```{r}
@@ -27,9 +28,9 @@ d_consensus_only <- data %>%
   filter(consensus != "dependent")
 ```
 
-# What are the average  belief updates for each claim type? 
+# What are the average belief updates for each claim type?
 
-### Independent v Dependent consensus 
+### Independent v Dependent consensus
 
 ```{r}
 mean_updates <- d_independence %>%
@@ -53,13 +54,14 @@ mean_updates %>%
 
 ```
 
-### Contested v Independent Consensus 
+### Contested v Independent Consensus
 
 ```{r}
 mean_updates_co <- d_consensus_only %>%
   group_by(claim_type, consensus) %>%
   summarise(mean_update = mean(update),
-    se_update = sd(update) / sqrt(n())
+    se_update = sd(update) / sqrt(n()),
+    post = mean(post)
 )
 
 mean_updates_co %>% 
@@ -76,14 +78,14 @@ mean_updates_co %>%
   theme_classic()
 ```
 
-# What are the average deltas (independent - dependent) for each claim type? 
+# What are the average deltas (independent - dependent) for each claim type?
 
 ```{r}
 deltas_claim_type <- d_independence %>% 
   filter(consensus != "contested") %>%
   pivot_wider(names_from = consensus, values_from = update) %>%
   group_by(claim_type) %>%
-  summarise(delta = mean(independent, na.rm = TRUE)-mean(dependent, na.rm = TRUE))
+  summarise(delta = mean(independent, na.rm = TRUE)-mean(dependent, na.rm = TRUE), post = mean(post))
 
 deltas_claim_type %>% 
   ggplot(aes(x = claim_type, y = delta))+
@@ -100,9 +102,9 @@ load(here("data/derived/group_output_combined.Rdata"))
 
 ```
 
-## Model Comparison 
+## Model Comparison
 
-### Excluding contested condition (independent v dependent) 
+### Excluding contested condition (independent v dependent)
 
 ```{r}
 model_LOOICs %>%
@@ -120,11 +122,31 @@ model_LOOICs %>%
 
 ## Estimates
 
-### Excluding contested condition (independent v dependent) 
+### Excluding contested condition (independent v dependent)
 
 ```{r}
 load(here("analyses/02_output/group-prior-consensusXclaim-rm-contested.Rdata"))
-summary(output)
+
+getCredibleInt <- function(output, probs = c(0.055, 0.945), decimals = 3){ # default is 89% credible interval 
+  posterior_sample <- as_draws_df(output)
+  # only include fixed effects
+  posterior_sample <- posterior_sample %>%
+    select(starts_with("b_"))
+  interval <- t(round(apply(posterior_sample, 2, function(x) quantile(x, probs = probs)),3))
+  colnames(interval) = c("Lower-CI", "Upper-CI")
+  interval
+}
+
+
+getParamDetails <- function(output){
+  intervals_89 <- getCredibleInt(output)
+  sum_output <- summary(output)
+  details <- cbind(round(sum_output$fixed[,"Estimate"],3), intervals_89)
+  colnames(details) <- c("Estimate", "Lower", "Upper")
+  details
+}
+
+getParamDetails(output)
 
 ```
 
@@ -132,7 +154,7 @@ summary(output)
 
 ```{r}
 load(here("analyses/02_output/group-prior-consensusXclaim-rm-dependent.Rdata"))
-summary(output)
+getParamDetails(output)
 ```
 
 Initial thoughts. No group level effects of independence when looking at the estimate, but according to model comparison it's still better than the null. No independence X claim type interaction despite hinting showing possible signs in the figures.
