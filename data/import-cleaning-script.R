@@ -47,6 +47,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
   raw_data <- raw_data[[1]]
   all_variables <- names(raw_data)
   all_data <- NULL
+  all_demographics <- NULL 
   # subject variable to fill with subject numbers, starting at 0
   running_subject <- 0
   # empty df to fill with participants who failed accuracy requirements. 
@@ -137,6 +138,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
     prolific_id <- d_participant[["PROLIFIC_PID"]]
     
     session_number <- d_participant[["session_number"]]
+    print(session_number)
     
     accuracy_info <- c(mean_accuracy,prolific_id)
     
@@ -217,9 +219,32 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
     # variables that only had one response per experiment (e.g., prolific ID)
     responses_one_off <- data.frame(t(responses[!is_trial_response]))
     
+    # get demographic questions
+    if (session_number == 1){
+      demographics <- select(responses_one_off, starts_with("demographics"))
+      # one participant's demographics aren't saving properly
+      if (!is.null(all_demographics)){
+        dem_names <- colnames(all_demographics)
+      if(ncol(demographics) != length(dem_names) - 2){
+        #browser(expr = {i == 328})
+        print("Error recording demographic data")
+        demographics <- t(as.data.frame(rep(NA, length(dem_names)-2)))
+        colnames(demographics) <- dem_names[1:(length(dem_names)-2)]
+      }
+      }
+      demographics = as.data.frame(demographics)
+      demographics$PROLIFIC_PID <- prolific_id
+      # empty subject number column
+      demographics$participant <- NA
+      rownames(demographics) <- NULL
+      all_demographics <- rbind(all_demographics, demographics)
+      
+    }
+    
     # match the number of rows to config data so they can be combined
     responses_one_off <- responses_one_off[rep(seq_len(nrow(responses_one_off)), length.out = nrow(config_data)), ]
-  
+    
+
     
     data_all <- cbind(responses_one_off, trial_data_wide, config_data)
     data_all <- data_all %>%
@@ -262,6 +287,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
       if (n_trials != 60 | mean_accuracy < .9){
         # remove participants who didn't complete the experiment or whose accuracy was below 90%
         all_data <- all_data[all_data$PROLIFIC_PID != id,]
+        all_demographics <- all_demographics[all_demographics$PROLIFIC_PID != id,]
 
         # do not output data for participants who didn't complete the experiment
         next
@@ -273,6 +299,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
     
     # add to data
     participant_data$participant <- participant
+    all_demographics[all_demographics[,"PROLIFIC_PID"] == id, "participant"] <- participant
 
     # move participant column to front
     participant_data <- participant_data[c("participant", names(participant_data)[-which(names(participant_data) == "participant")])]
@@ -301,7 +328,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
   all_data <- all_data[c("participant", names(all_data)[-which(names(all_data) == "participant")])]
   follow_ups <- follow_ups[c("participant", names(follow_ups)[-which(names(follow_ups) %in% c("participant", "PROLIFIC_PID"))])]
   
-  list(all_data, rm_accuracy, rm_drop_out, follow_ups)
+  list(data = all_data, rm_accuracy = rm_accuracy, rm_drop_out = rm_drop_out, follow_up = follow_ups, demographics = all_demographics)
 }
 
 # indicate whether 
@@ -330,12 +357,14 @@ median_time <- median(time$time)
 
 paste0("It took participants a median of ", median_time, " minutes to complete the study")
 
+## Ee Von Put Extra Demographics Below
+demographics <- all_data$demographics
+
 checkParticipant = function(id){
   d <- just_data %>%
     filter(PROLIFIC_PID == id)
   d
 }
-
 #check <- checkParticipant("656f042cc31f84842ad587e4")
 
 
