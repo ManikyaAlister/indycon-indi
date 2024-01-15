@@ -44,7 +44,12 @@ model_comparison %>%
   geom_hline(yintercept = 0, colour = "black")+
   theme_bw() +
     theme(axis.text.x = element_blank(),
-          axis.ticks.x = element_blank()) 
+          axis.ticks.x = element_blank(),
+          legend.position = "bottom") 
+```
+
+```{r}
+
 ```
 
 ## Deltas and actual data
@@ -76,7 +81,10 @@ d_independence <- data %>%
 deltas_independence %>%
   ggplot(aes(x = factor(participant, levels = ordered_participants), y = delta)) +
     geom_col(fill = "black")+
-  geom_point(data = d_independence, aes(y = update, colour = consensus), alpha = 0.5) 
+  geom_point(data = d_independence, aes(y = update, colour = consensus), alpha = 0.5) +
+      theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = "bottom") 
 
   
 ```
@@ -89,15 +97,16 @@ model_comparison %>%
   filter(excluded_condition == "dependent") %>%
   ggplot(aes(x = reorder(as.character(subject), consensus_estimate), y = consensus_estimate, colour = best_model)) +
   #ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
-  geom_point() +
+  geom_point(aes(shape = best_model)) +
   geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
   labs(title = "Preference for consensus v no preference (contested v independent)",
        x = "Subject (ordered by consensus parameter)",
        y = "Consensus Parameter") +
   geom_hline(yintercept = 0, colour = "black")+
   theme_bw() +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()) 
+    theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = "bottom") 
 
 ```
 
@@ -133,7 +142,7 @@ pos_consensus <- model_comparison %>%
   mutate(reported_strategy = self_report[self_report$participant == subject,"self_report_strategy"])
 
 # calculate the proportion of self reported "diverse" participants with a positive beta
-prop_diverse_pos <- sum(pos_consensus$reported_strategy == "diverse")/length(pos_consensus$reported_strategy)
+prop_diverse_pos <- sum(pos_consensus$reported_strategy == "diverse", na.rm = TRUE)/length(pos_consensus$reported_strategy)
 
 # compare both proportions
 prop_diverse_comparison <- c(`Full Sample` = prop_diverse_full, `Positive Beta` = prop_diverse_pos)
