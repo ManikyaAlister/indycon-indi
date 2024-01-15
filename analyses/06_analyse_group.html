@@ -58,6 +58,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
+<<<<<<< HEAD
 <script src="06_analyse_group_files/libs/clipboard/clipboard.min.js"></script>
 <script src="06_analyse_group_files/libs/quarto-html/quarto.js"></script>
 <script src="06_analyse_group_files/libs/quarto-html/popper.min.js"></script>
@@ -68,6 +69,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="06_analyse_group_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="06_analyse_group_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="06_analyse_group_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+=======
+<script src="analyse_group_files/libs/clipboard/clipboard.min.js"></script>
+<script src="analyse_group_files/libs/quarto-html/quarto.js"></script>
+<script src="analyse_group_files/libs/quarto-html/popper.min.js"></script>
+<script src="analyse_group_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="analyse_group_files/libs/quarto-html/anchor.min.js"></script>
+<link href="analyse_group_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="analyse_group_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="analyse_group_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="analyse_group_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="analyse_group_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+>>>>>>> de0e661 (by session models)
 
 
 </head>
@@ -116,6 +129,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(consensus <span class="sc">!=</span> <span class="st">"dependent"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+<<<<<<< HEAD
 <section id="priors" class="level1">
 <h1>Priors</h1>
 <div class="cell">
@@ -193,6 +207,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 </div>
 </section>
+=======
+>>>>>>> de0e661 (by session models)
 <section id="what-are-the-average-belief-updates-for-each-claim-type" class="level1">
 <h1>What are the average belief updates for each claim type?</h1>
 <section id="independent-v-dependent-consensus" class="level3">
@@ -200,11 +216,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
+<<<<<<< HEAD
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>mean_updates <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(claim_type, consensus) <span class="sc">%&gt;%</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_update =</span> <span class="fu">mean</span>(update),</span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">se_update =</span> <span class="fu">sd</span>(update) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">n</span>())</span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+=======
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mean_updates <span class="ot">&lt;-</span> d_independence <span class="sc">%&gt;%</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(claim_type, consensus) <span class="sc">%&gt;%</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_update =</span> <span class="fu">mean</span>(update),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">se_update =</span> <span class="fu">sd</span>(update) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">n</span>())</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+>>>>>>> de0e661 (by session models)
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>`summarise()` has grouped output by 'claim_type'. You can override using the
@@ -212,6 +236,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <details>
 <summary>Code</summary>
+<<<<<<< HEAD
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>colour_scale <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"purple"</span>, <span class="st">"darkblue"</span>, <span class="st">"red"</span>)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>mean_updates <span class="sc">%&gt;%</span> </span>
@@ -230,12 +255,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">colour =</span> <span class="st">"Trial Type"</span>, <span class="at">fill =</span> <span class="st">"Trial Type"</span>)<span class="sc">+</span></span>
 <span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> colour_scale) <span class="sc">+</span>  <span class="co"># Replace with your desired colors</span></span>
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> colour_scale)    <span class="co"># Replace with your desired colors</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+=======
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>mean_updates <span class="sc">%&gt;%</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> claim_type, <span class="at">y =</span> mean_update, <span class="at">fill =</span> consensus)) <span class="sc">+</span> </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="fl">0.2</span>, <span class="at">alpha =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> mean_update <span class="sc">-</span> se_update, <span class="at">ymax =</span> mean_update <span class="sc">+</span> se_update), </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="fl">0.9</span>), <span class="at">width =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">data =</span> d_independence, <span class="fu">aes</span>(<span class="at">x =</span> claim_type, <span class="at">y =</span> update, <span class="at">colour =</span> consensus), </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">position =</span> <span class="fu">position_jitterdodge</span>(), <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="dv">50</span>, <span class="dv">100</span>) <span class="sc">+</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">""</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Claim Type"</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Mean Update (Post - Prior)"</span>) <span class="sc">+</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+>>>>>>> de0e661 (by session models)
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
 ℹ Please use `linewidth` instead.</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
+<<<<<<< HEAD
 <pre><code>Warning: Removed 186 rows containing missing values (`geom_point()`).</code></pre>
 </div>
 <div class="cell-output-display">
@@ -247,6 +287,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 186 rows containing missing values (`geom_point()`).</code></pre>
+=======
+<pre><code>Warning: Removed 3 rows containing missing values (`geom_point()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="analyse_group_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+>>>>>>> de0e661 (by session models)
 </div>
 </div>
 </section>
@@ -255,12 +301,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
+<<<<<<< HEAD
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mean_updates_co <span class="ot">&lt;-</span> d_consensus_only <span class="sc">%&gt;%</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(claim_type, consensus) <span class="sc">%&gt;%</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_update =</span> <span class="fu">mean</span>(update),</span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">se_update =</span> <span class="fu">sd</span>(update) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">n</span>()),</span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">post =</span> <span class="fu">mean</span>(post)</span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+=======
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>mean_updates_co <span class="ot">&lt;-</span> d_consensus_only <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(claim_type, consensus) <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">mean_update =</span> <span class="fu">mean</span>(update),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">se_update =</span> <span class="fu">sd</span>(update) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">n</span>())</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+>>>>>>> de0e661 (by session models)
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>`summarise()` has grouped output by 'claim_type'. You can override using the
@@ -268,6 +322,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <details>
 <summary>Code</summary>
+<<<<<<< HEAD
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>mean_updates_co <span class="sc">%&gt;%</span> </span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> claim_type, <span class="at">y =</span> mean_update, <span class="at">fill =</span> consensus)) <span class="sc">+</span> </span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="fl">0.2</span>, <span class="at">alpha =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
@@ -280,12 +335,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Claim Type"</span>,</span>
 <span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Mean Update (Post - Prior)"</span>) <span class="sc">+</span></span>
 <span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+=======
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>mean_updates_co <span class="sc">%&gt;%</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> claim_type, <span class="at">y =</span> mean_update, <span class="at">fill =</span> consensus)) <span class="sc">+</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">colour =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="fl">0.2</span>, <span class="at">alpha =</span> .<span class="dv">6</span>) <span class="sc">+</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> mean_update <span class="sc">-</span> se_update, <span class="at">ymax =</span> mean_update <span class="sc">+</span> se_update), </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="fl">0.9</span>), <span class="at">width =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">data =</span> d_consensus_only, <span class="fu">aes</span>(<span class="at">x =</span> claim_type, <span class="at">y =</span> update, <span class="at">colour =</span> consensus), </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">position =</span> <span class="fu">position_jitterdodge</span>(), <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="dv">50</span>, <span class="dv">100</span>) <span class="sc">+</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">""</span>,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Claim Type"</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Mean Update (Post - Prior)"</span>) <span class="sc">+</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+>>>>>>> de0e661 (by session models)
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Removed 18 rows containing missing values (`geom_point()`).</code></pre>
 </div>
 <div class="cell-output-display">
+<<<<<<< HEAD
 <p><img src="06_analyse_group_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+=======
+<p><img src="analyse_group_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+>>>>>>> de0e661 (by session models)
 </div>
 </div>
 </section>
@@ -295,6 +368,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
+<<<<<<< HEAD
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>deltas_claim_type <span class="ot">&lt;-</span> d_independence <span class="sc">%&gt;%</span> </span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(consensus <span class="sc">!=</span> <span class="st">"contested"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> consensus, <span class="at">values_from =</span> update) <span class="sc">%&gt;%</span></span>
@@ -309,6 +383,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 <div class="cell-output-display">
 <p><img src="06_analyse_group_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+=======
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>deltas_claim_type <span class="ot">&lt;-</span> d_independence <span class="sc">%&gt;%</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(consensus <span class="sc">!=</span> <span class="st">"contested"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> consensus, <span class="at">values_from =</span> update) <span class="sc">%&gt;%</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(claim_type) <span class="sc">%&gt;%</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">delta =</span> <span class="fu">mean</span>(independent, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)<span class="sc">-</span><span class="fu">mean</span>(dependent, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>deltas_claim_type <span class="sc">%&gt;%</span> </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> claim_type, <span class="at">y =</span> delta))<span class="sc">+</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"seagreen"</span>)<span class="sc">+</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()<span class="sc">+</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Claim Type"</span>, <span class="at">y =</span> <span class="st">"Delta (Independent - Dependent)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="analyse_group_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+>>>>>>> de0e661 (by session models)
 </div>
 </div>
 </section>
@@ -317,8 +407,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
+<<<<<<< HEAD
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load output </span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"data/derived/group_output_combined.Rdata"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+=======
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load output </span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"data/derived/group_output_combined.Rdata"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+>>>>>>> de0e661 (by session models)
 </details>
 </div>
 <section id="model-comparison" class="level2">
@@ -328,6 +423,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
+<<<<<<< HEAD
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>model_LOOICs <span class="sc">%&gt;%</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(excluded_condition <span class="sc">==</span> <span class="st">"contested"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">model_rank =</span> <span class="fu">rank</span>(all_looic),</span>
@@ -340,6 +436,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 2       group-prior-consensus          contested     26946    103          3
 3 group-prior-consensus-claim          contested     26493    111          1
 4 group-prior-consensusXclaim          contested     26496    111          2</code></pre>
+=======
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model_LOOICs <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(excluded_condition <span class="sc">==</span> <span class="st">"contested"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">model_rank =</span> <span class="fu">rank</span>(all_looic))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                        model excluded_condition all_looic model_rank
+1                 group-prior          contested  26951.65          4
+2       group-prior-consensus          contested  26944.93          3
+3 group-prior-consensus-claim          contested  26493.19          1
+4 group-prior-consensusXclaim          contested  26496.49          2</code></pre>
+>>>>>>> de0e661 (by session models)
 </div>
 </div>
 </section>
@@ -348,6 +456,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
+<<<<<<< HEAD
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>model_LOOICs <span class="sc">%&gt;%</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(excluded_condition <span class="sc">==</span> <span class="st">"dependent"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">model_rank =</span> <span class="fu">rank</span>(all_looic),</span>
@@ -360,6 +469,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 2       group-prior-consensus          dependent     26633    116          3
 3 group-prior-consensus-claim          dependent     26565    117          2
 4 group-prior-consensusXclaim          dependent     26335    121          1</code></pre>
+=======
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>model_LOOICs <span class="sc">%&gt;%</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(excluded_condition <span class="sc">==</span> <span class="st">"dependent"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">model_rank =</span> <span class="fu">rank</span>(all_looic)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                        model excluded_condition all_looic model_rank
+1                 group-prior          dependent  27692.60          4
+2       group-prior-consensus          dependent  26632.93          3
+3 group-prior-consensus-claim          dependent  26564.61          2
+4 group-prior-consensusXclaim          dependent  26336.35          1</code></pre>
+>>>>>>> de0e661 (by session models)
 </div>
 </div>
 </section>
@@ -371,6 +492,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details>
 <summary>Code</summary>
+<<<<<<< HEAD
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"analyses/02_output/group-prior-consensus-claim-rm-contested.Rdata"</span>))</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>getCredibleInt <span class="ot">&lt;-</span> <span class="cf">function</span>(output, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.055</span>, <span class="fl">0.945</span>), <span class="at">decimals =</span> <span class="dv">3</span>){ <span class="co"># default is 89% credible interval </span></span>
@@ -393,11 +515,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a><span class="fu">getParamDetails</span>(output)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+=======
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"analyses/02_output/group-prior-consensusXclaim-rm-contested.Rdata"</span>))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>getCredibleInt <span class="ot">&lt;-</span> <span class="cf">function</span>(output, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.055</span>, <span class="fl">0.945</span>), <span class="at">decimals =</span> <span class="dv">3</span>){ <span class="co"># default is 89% credible interval </span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  posterior_sample <span class="ot">&lt;-</span> <span class="fu">as_draws_df</span>(output)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># only include fixed effects</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  posterior_sample <span class="ot">&lt;-</span> posterior_sample <span class="sc">%&gt;%</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="fu">starts_with</span>(<span class="st">"b_"</span>))</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  interval <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">round</span>(<span class="fu">apply</span>(posterior_sample, <span class="dv">2</span>, <span class="cf">function</span>(x) <span class="fu">quantile</span>(x, <span class="at">probs =</span> probs)),<span class="dv">3</span>))</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(interval) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Lower-CI"</span>, <span class="st">"Upper-CI"</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  interval</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>getParamDetails <span class="ot">&lt;-</span> <span class="cf">function</span>(output){</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  intervals_89 <span class="ot">&lt;-</span> <span class="fu">getCredibleInt</span>(output)</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  sum_output <span class="ot">&lt;-</span> <span class="fu">summary</span>(output)</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  details <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">round</span>(sum_output<span class="sc">$</span>fixed[,<span class="st">"Estimate"</span>],<span class="dv">3</span>), intervals_89)</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(details) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Estimate"</span>, <span class="st">"Lower"</span>, <span class="st">"Upper"</span>)</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  details</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a><span class="fu">getParamDetails</span>(output)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+>>>>>>> de0e661 (by session models)
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Dropping 'draws_df' class as required metadata was removed.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
+<<<<<<< HEAD
 <pre><code>                                 Estimate   Lower   Upper
 b_Intercept                        42.896  40.789  44.977
 b_pre_adjusted                      0.666   0.648   0.684
@@ -426,6 +573,18 @@ b_claim_typeUnknowablePreference  -15.898 -17.271 -14.512</code></pre>
 Results are averaged over the levels of: consensus 
 Point estimate displayed: mean 
 HPD interval probability: 0.89 </code></pre>
+=======
+<pre><code>                                                      Estimate   Lower   Upper
+b_Intercept                                             42.975  40.655  45.383
+b_pre_adjusted                                           0.665   0.647   0.683
+b_consensusindependent                                   1.755  -0.116   3.615
+b_claim_typeKnowableFacts                               -2.997  -4.888  -1.099
+b_claim_typeUnknowableExpert                           -12.833 -14.701 -10.908
+b_claim_typeUnknowablePreference                       -15.028 -16.973 -13.088
+b_consensusindependent:claim_typeKnowableFacts           0.596  -2.022   3.274
+b_consensusindependent:claim_typeUnknowableExpert        0.833  -1.892   3.541
+b_consensusindependent:claim_typeUnknowablePreference   -1.758  -4.380   0.936</code></pre>
+>>>>>>> de0e661 (by session models)
 </div>
 </div>
 </section>
@@ -434,14 +593,20 @@ HPD interval probability: 0.89 </code></pre>
 <div class="cell">
 <details>
 <summary>Code</summary>
+<<<<<<< HEAD
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"analyses/02_output/group-prior-consensusXclaim-rm-dependent.Rdata"</span>))</span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">getParamDetails</span>(output)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+=======
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"analyses/02_output/group-prior-consensusXclaim-rm-dependent.Rdata"</span>))</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">getParamDetails</span>(output)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+>>>>>>> de0e661 (by session models)
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Dropping 'draws_df' class as required metadata was removed.</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                                                      Estimate   Lower   Upper
+<<<<<<< HEAD
 b_Intercept                                              9.541   7.817  11.263
 b_pre_adjusted                                           0.716   0.698   0.733
 b_consensusindependent                                  32.895  31.117  34.678
@@ -522,6 +687,17 @@ b_consensusindependent:claim_typeUnknowablePreference  -21.488 -24.128 -18.802</
 
 Point estimate displayed: mean 
 HPD interval probability: 0.89 </code></pre>
+=======
+b_Intercept                                              9.530   7.789  11.268
+b_pre_adjusted                                           0.716   0.698   0.733
+b_consensusindependent                                  32.889  31.047  34.745
+b_claim_typeKnowableFacts                                1.885  -0.031   3.776
+b_claim_typeUnknowableExpert                             6.411   4.553   8.285
+b_claim_typeUnknowablePreference                         4.194   2.336   6.008
+b_consensusindependent:claim_typeKnowableFacts          -4.639  -7.281  -1.994
+b_consensusindependent:claim_typeUnknowableExpert      -18.794 -21.414 -16.145
+b_consensusindependent:claim_typeUnknowablePreference  -21.456 -24.109 -18.820</code></pre>
+>>>>>>> de0e661 (by session models)
 </div>
 </div>
 <p>Initial thoughts. No group level effects of independence when looking at the estimate, but according to model comparison it’s still better than the null. No independence X claim type interaction despite hinting showing possible signs in the figures.</p>
