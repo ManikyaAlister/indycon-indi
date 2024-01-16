@@ -3,26 +3,41 @@ library(here)
 library(tidyverse)
 # simulate data
 load(here("simulation/data/generating_params_adjusted.Rdata"))
+load(here("simulation/data/participant_types.Rdata"))
 load(here("data/experiment-3-2022/data.rdata"))
 
 
-participants <- unique(generating_params$uid_num)
+participants <- participant_types$full_uid
 n <- length(participants)
 
-all_trials_per_cell <- c(6, 9, 12, 16, 20)
+all_trials_per_cell <- c(6, 9, 12, 16, 20) #c(24, 28, 32)
+
 trials_per_cell_real <- 6 # how many trials per cell in real data
 max_trials_per_cell <- 20-trials_per_cell_real # so that first n trials are the real data
 n_cells <- 2
 
 # generate the maximum number of trials per cell
 for (i in 1:n){
-  p <- participants[i]
+  id <- participants[i]
+  p <- i
   p_gen_data <- generating_params %>%
-    filter(uid_num == p)
+    filter(uid == id)
   
   # get actual empirical data
-  real_data <- data %>% 
-    filter(uid_num == p)
+  real_data <- data %>%
+    filter(uid == id)
+  # 
+  # test <- real_data %>%
+  #   select(uid,nSources_A, sideA, update, prior, prior_adjusted, post, post_adjusted)
+  # 
+  # test %>%
+  #   group_by(nSources_A) %>%
+  #   summarise(post <- mean(post_adjusted))
+  # 
+  # one <- real_data %>%
+  #   filter(nSources_A == 1)
+  # mean(one$post_adjusted)
+  # 
   
   all_sim_data <- NULL
   for (j in 1:n_cells){
@@ -49,17 +64,17 @@ for (i in 1:n){
     
     cell_real <- real_data %>%
       filter(nSources_A == nSources) %>%
-      select(update, prior, post_adjusted)
+      select(update, prior_adjusted, post_adjusted)
     
     update_sim <- rnorm(max_trials_per_cell, m_update, sd_update)
     prior_sim <- rnorm(max_trials_per_cell, m_prior, sd_prior)
     post_sim <- rnorm(max_trials_per_cell, m_post, sd_post)
     
     update = c(cell_real$update, update_sim)
-    prior <- c(cell_real$prior, prior_sim)
+    prior <- c(cell_real$prior_adjusted, prior_sim)
     post <- c(cell_real$post_adjusted, post_sim)
     
-    d_cell <- cbind(p, nSources_A, update, prior, post, type)
+    d_cell <- cbind(p, nSources_A, update, prior, post, type, id)
     all_sim_data <- rbind(all_sim_data, d_cell)
   }
   # take just the trials in that n_trials condition for each cell
@@ -73,3 +88,4 @@ for (i in 1:n){
     save(sim_data, file = here(paste0("simulation/data/p",i,"-",n_trials,"-trials-adjusted.Rdata")))
   }
 }
+

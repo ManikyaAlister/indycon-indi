@@ -1,24 +1,23 @@
 rm(list = ls())
 library(here)
-library(dplyr)
 library(tidyverse)
 load(here("data/experiment-3-2022/proportion_above_median.Rdata"))
 load(here("data/experiment-3-2022/data.2.Rdata"))
 
 data <- data.2 %>%
   mutate(
-         uid_num = factor(as.integer(uid), levels = unique(as.integer(uid))),
+         #uid_num = factor(as.integer(uid), levels = unique(as.integer(uid))),
          post_adjusted = ifelse(sideA == "pro", post, (100-post)),
-         #prior_adjusted = ifelse(sideA == "pro", prior, (100-prior)),
-         update = post_adjusted-prior
+         prior_adjusted = ifelse(sideA == "pro", prior, (100-prior)),
+         update = post_adjusted-prior_adjusted
   )
 
 save(data, file = here("data/experiment-3-2022/data.rdata"))
 
 # Filter data for topic level analysis for Ee Von
 data_topics <- data %>%
-  select(uid, trialType, prior, post_adjusted, nSources_A)%>%
-  mutate(update = post_adjusted-prior)%>% 
+  select(uid, trialType, prior_adjusted, post_adjusted, nSources_A)%>%
+  mutate(update = post_adjusted-prior_adjusted)%>% 
   group_by(trialType, nSources_A) %>%
   summarise(update = median(update)) %>%
   pivot_wider(names_from = nSources_A, values_from = update)
@@ -26,71 +25,50 @@ write.csv(data_topics, file = here("simulation/topic-analysis/data/topic_data.cs
 
 proportion_above_median$uid_num = proportion_above_median$uid
 
+participant_types <- proportion_above_median %>% 
+  filter(n_above_median >= 3) %>% # avoid duplicates 
+  mutate(p_type = case_when(
+    n_above_median == 5 & n_sources == 1 ~ "dep_strong",
+    n_above_median == 4 & n_sources == 1 ~ "dep_med",
+    n_above_median == 3 ~ "none",
+    n_above_median == 5 & n_sources == 4 ~ "ind_strong",
+    n_above_median == 4 & n_sources == 4 ~ "ind_med",
+  )) %>%
+  # when n)above median = 3 it appears for both 4 sources and 1, so need to filter out one of those so participants aren't repeated. 
+  filter(!duplicated(uid))
 # More convinced by independence
-ps_ind_strong <- proportion_above_median %>%
-  filter(n_above_median == 5, n_sources == 4) %>%
-  select(uid_num)
 
-d_ind_strong <- data %>%
-  filter(uid_num %in% ps_ind_strong$uid_num) %>%
-  group_by(uid_num, nSources_A) %>%
-  summarise(mean_update = mean(update), sd_update = sd(update), mean_prior = mean(prior), sd_prior = sd(prior), mean_post = mean(post), sd_post = sd(post))%>%
-  mutate(p_type = "ind_strong")
+save(participant_types, file = "simulation/data/participant_types.Rdata")
 
+sim_participants <- participant_types$full_uid
 
-ps_ind_med <- proportion_above_median %>%
-  filter(n_above_median == 4, n_sources == 4) %>%
-  select(uid_num)
+generating_params <- NULL
+for (i in 1:length(sim_participants)) {
+  # reset gen_data
+  gen_data <- NULL
+  
+  # get uid number
+  id <- sim_participants[i]
+  
+  p_type <- as.character(participant_types[participant_types$full_uid == id, "p_type"])
+  
+  if(is.na(p_type)) stop()
+  # get generating params
+  gen_data <- data %>%
+    filter(uid == id) %>%
+    #select(uid, uid_num, nSources_A, sideA, update, prior, prior_adjusted, post, post_adjusted)
+  group_by(uid, nSources_A) %>%
+    summarise(
+      mean_update = mean(update),
+      sd_update = sd(update),
+      mean_prior = mean(prior_adjusted),
+      sd_prior = sd(prior_adjusted),
+      mean_post = mean(post_adjusted),
+      sd_post = sd(post_adjusted)
+    ) %>%
+    mutate(p_type = p_type)
+  
+  generating_params <- rbind(generating_params, gen_data)
+}
 
-d_ind_med <- data %>%
-  filter(uid_num %in% ps_ind_med$uid_num) %>%
-  group_by(uid_num, nSources_A) %>%
-  summarise(mean_update = mean(update), sd_update = sd(update), mean_prior = mean(prior), sd_prior = sd(prior), mean_post = mean(post), sd_post = sd(post)) %>%
-  mutate(p_type = "ind_med")
-
-# More convinced by dependence 
-ps_dep_strong <- proportion_above_median %>%
-  filter(n_above_median == 5, n_sources == 1) %>%
-  select(uid_num, n_sources)
-
-d_dep_strong <- data %>%
-  filter(uid_num %in% ps_dep_strong$uid_num) %>%
-  group_by(uid_num, nSources_A) %>%
-  summarise(mean_update = mean(update), sd_update = sd(update), mean_prior = mean(prior), sd_prior = sd(prior), mean_post = mean(post), sd_post = sd(post)) %>%
-  mutate(p_type = "dep_strong")
-
-ps_dep_med <- proportion_above_median %>%
-  filter(n_above_median == 4, n_sources == 1) %>%
-  select(uid_num,n_sources)
-
-d_dep_med <- data %>%
-  filter(uid_num %in% ps_dep_med$uid_num) %>%
-  group_by(uid_num, nSources_A) %>%
-  summarise(mean_update = mean(update), sd_update = sd(update), mean_prior = mean(prior), sd_prior = sd(prior), mean_post = mean(post), sd_post = sd(post)) %>%
-  mutate(p_type = "dep_med")
-
-# none
-ps_none_dep <- proportion_above_median %>%
-  filter(n_above_median == 3, n_sources == 1) %>%
-  select(uid_num, n_sources)
-
-d_dep_none <- data %>%
-  filter(uid_num %in% ps_none_dep$uid_num) %>%
-  group_by(uid_num, nSources_A) %>%
-  summarise(mean_update = mean(update), sd_update = sd(update), mean_prior = mean(prior), sd_prior = sd(prior), mean_post = mean(post), sd_post = sd(post)) %>%
-  mutate(p_type = "dep_none")
-
-ps_none_ind <- proportion_above_median %>%
-  filter(n_above_median == 3, n_sources == 4) %>%
-  select(uid_num, n_sources)
-
-d_ind_none <- data %>%
-  filter(uid_num %in% ps_none_ind$uid_num) %>%
-  group_by(uid_num, nSources_A) %>%
-  summarise(mean_update = mean(update), sd_update = sd(update), mean_prior = mean(prior), sd_prior = sd(prior), mean_post = mean(post), sd_post = sd(post)) %>%
-  mutate(p_type = "ind_none")
-
-# combine all 
-
-generating_params <- rbind(d_ind_strong, d_ind_med, d_ind_none, d_dep_strong, d_dep_med, d_dep_none)
 save(generating_params, file = here("simulation/data/generating_params_adjusted.Rdata"))
