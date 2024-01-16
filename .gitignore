@@ -58,3 +58,5 @@ rsconnect/
 
 # any folders called archive 
 /archive/
+
+.DS_Store
