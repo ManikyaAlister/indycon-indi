@@ -16,7 +16,7 @@ getCredibleInt <- function(output, probs = c(0.055, 0.945)){ # default is 89% cr
   interval
 }
 
-getModelOutput <- function(model_details){
+getModelOutput <- function(model_details, by_session = FALSE){
   
   if (is.data.frame(model_details)){
     vec_names <- colnames(model_details)
@@ -25,27 +25,43 @@ getModelOutput <- function(model_details){
   }
   
   participant <- as.numeric(model_details["subject"])
+  
   model <- model_details["model"]
-  remove <- model_details["excluded_condition"]
   
   # empty vector for processed output 
   #processed_output <- c(subject = participant, model = model, excluded_cond = remove, looic = NA, consensus_estimate = NA, lower_CI = NA, upper_CI = NA)
   processed_output <- c(looic = NA, consensus_estimate = NA, lower_CI = NA, upper_CI = NA)
   
+  remove <- model_details["excluded_condition"]
   
-  # load output file
-  load(here(
-    paste0(
-      "analyses/02_output/P",
-      participant,
-      "-",
-      model,
-      "-rm-",
-      remove,
-      ".Rdata"
-    )
-  ))
+  # if by session "remove" isn't really accurate, since we're selecting that session, not 
+  # removing it but since this was how it was in the original function I don't want to change it. 
+  if (by_session){
+    load(here(
+      paste0(
+        "analyses/02_output/P",
+        participant,
+        "-",
+        model,
+        "-rm-contested-session-",remove,".Rdata"
+      )
+    ))
+  } else {
+    load(here(
+      paste0(
+        "analyses/02_output/P",
+        participant,
+        "-",
+        model,
+        "-rm-",
+        remove,
+        ".Rdata"
+      )
+    ))
+  }
   
+
+
   summ_output <- summary(output)
   processed_output["looic"] <- loo(output)$estimates["looic",1]
   
@@ -90,29 +106,10 @@ model_comparison <- model_output %>%
 save(model_comparison, file = here("data/derived/model_comparison.Rdata"))
 
 
-model_comparison %>%
-  filter(excluded_condition == "contested") %>%
-  ggplot(aes(x = reorder(as.character(subject), consensus_estimate), y = consensus_estimate, colour = best_model)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
-  labs(title = "Model Comparison: Prior Only v Independence. Contested Data Removed",
-       x = "Subject",
-       y = "Consensus Estimate") +
-  geom_hline(yintercept = 0, colour = "black")+
-  theme_bw() +
-    theme(axis.text.x = element_blank(),
-          axis.ticks.x = element_blank()) 
+# Look out modelling results by session -----------------------------------
 
+sessions <- 1:2
+model_details_by_session <- expand.grid(subject = 1:n_sub, model = models, excluded_condition = sessions)
 
-model_comparison %>%
-  filter(excluded_condition == "dependent") %>%
-  ggplot(aes(x = reorder(as.character(subject), consensus_estimate), y = consensus_estimate, colour = best_model)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
-  labs(title = "Model Comparison: Prior Only v Independent. Dependent Data Removed",
-       x = "Subject",
-       y = "Consensus Estimate") +
-  geom_hline(yintercept = 0, colour = "black")+
-  theme_bw() +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()) 
+# get model output for all participants and conditions
+procesed_output_by_session <- t(apply(model_details_by_session, 1, function(x) getModelOutput(x, by_session = TRUE)))
