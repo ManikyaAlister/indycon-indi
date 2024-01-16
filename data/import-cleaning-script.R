@@ -31,9 +31,6 @@ claim_info <- data.frame(
   )
 )
 
-# load source type information
-source_info <- read.csv(here("data/derived/source_data.csv"))
-
 # Displaying the created data frame
 print(data)
 
@@ -171,8 +168,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
       mutate(trial_accuracy = trial_accuracy)
     
    trial_data_wide$claim_type <- claim_info$type[match(trial_data_wide$claim, claim_info$id)]
-   trial_data_wide$source <- source_info$source[match(trial_data_wide$claim, source_info$claimId)]
-   
+    
              
     
     getConfigData = function(tweetConfig) {
@@ -259,7 +255,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
              pre_adjusted = ifelse(side_A == "con"  & consensus != "contested", (100-pre), pre))
     # remove unnecessary columns
     data <- data_all %>%
-      select(PROLIFIC_PID, session_number, claim_set, claim, claim_type, source, pre, post, pre_adjusted, post_adjusted, consensus, side_A, side_B,
+      select(PROLIFIC_PID, session_number, claim_set, claim, claim_type, pre, post, pre_adjusted, post_adjusted, consensus, side_A, side_B,
              nSources_A, nSources_B, prop_pro, trial_accuracy, total_duration,  stances, tweetOrder)
   all_data <- rbind(all_data, data)
   }
@@ -363,6 +359,40 @@ paste0("It took participants a median of ", median_time, " minutes to complete t
 
 ## Ee Von Put Extra Demographics Below
 demographics <- all_data$demographics
+
+# Information about age
+age <- as.integer(demographics$demographics_age)
+min_age <- min(age)
+max_age <- max(age)
+paste0("The age range for the participants is ", min_age, " to ", max_age)
+mean_age <- mean(age)
+paste0("The mean age is ", mean_age)
+median_age <- median(age)
+paste0("The median age is ", median_age)
+
+# Information about gender
+gender <- demographics$demographics_gender
+## this creates a frequency table for gender
+table_gender <- table(gender) 
+## this calculates a frequency table of proportions for gender
+prop_gender <- prop.table(table_gender)
+paste0("Percentage of male participants: ", prop_gender["male"] * 100)
+paste0("Percentage of female participants: ", prop_gender["female"] * 100)
+paste0("Percentage of nonbinary participant(s): ", prop_gender["nonbinary"] * 100)
+paste0("Percentage of transfemale participant(s): ", prop_gender["transfemale"] * 100)
+
+# Information about fluency
+fluency <- demographics$demographics_fluency
+table_fluency <- table(fluency)
+paste0("There are ", table_fluency["native"], " native English speakers.")
+
+# Information about social media
+social <- table(demographics$demographics_facebook) + table(demographics$demographics_twitter)
+percentage_social <- social / sum(social)
+
+# Information about politics
+politics <- table(demographics$demographics_politics)/sum(table(demographics$demographics_politics))
+
 
 checkParticipant = function(id){
   d <- just_data %>%
