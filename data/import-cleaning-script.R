@@ -31,6 +31,9 @@ claim_info <- data.frame(
   )
 )
 
+# load source type information
+source_info <- read.csv(here("data/derived/source_data.csv"))
+
 # Displaying the created data frame
 print(data)
 
@@ -168,7 +171,8 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
       mutate(trial_accuracy = trial_accuracy)
     
    trial_data_wide$claim_type <- claim_info$type[match(trial_data_wide$claim, claim_info$id)]
-    
+   trial_data_wide$source <- source_info$source[match(trial_data_wide$claim, source_info$claimId)]
+   
              
     
     getConfigData = function(tweetConfig) {
@@ -255,7 +259,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
              pre_adjusted = ifelse(side_A == "con"  & consensus != "contested", (100-pre), pre))
     # remove unnecessary columns
     data <- data_all %>%
-      select(PROLIFIC_PID, session_number, claim_set, claim, claim_type, pre, post, pre_adjusted, post_adjusted, consensus, side_A, side_B,
+      select(PROLIFIC_PID, session_number, claim_set, claim, claim_type, source, pre, post, pre_adjusted, post_adjusted, consensus, side_A, side_B,
              nSources_A, nSources_B, prop_pro, trial_accuracy, total_duration,  stances, tweetOrder)
   all_data <- rbind(all_data, data)
   }
