@@ -28,7 +28,9 @@ claim_info <- data.frame(
   type = c(
     rep("Unknowable Expert", 15), rep("Unknowable Preference", 15), 
     rep("Knowable Facts", 15), rep("Knowable Eye witness", 15)
-  )
+  ), 
+  broad_type = c(rep("Unknowable", 30), 
+  rep("Knowable", 30))
 )
 
 # Displaying the created data frame
@@ -168,7 +170,8 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
       mutate(trial_accuracy = trial_accuracy)
     
    trial_data_wide$claim_type <- claim_info$type[match(trial_data_wide$claim, claim_info$id)]
-    
+   trial_data_wide$broad_claim_type <- claim_info$broad_type[match(trial_data_wide$claim, claim_info$id)]
+   
              
     
     getConfigData = function(tweetConfig) {
@@ -255,7 +258,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
              pre_adjusted = ifelse(side_A == "con"  & consensus != "contested", (100-pre), pre))
     # remove unnecessary columns
     data <- data_all %>%
-      select(PROLIFIC_PID, session_number, claim_set, claim, claim_type, pre, post, pre_adjusted, post_adjusted, consensus, side_A, side_B,
+      select(PROLIFIC_PID, session_number, claim_set, claim, claim_type, broad_claim_type, pre, post, pre_adjusted, post_adjusted, consensus, side_A, side_B,
              nSources_A, nSources_B, prop_pro, trial_accuracy, total_duration,  stances, tweetOrder)
   all_data <- rbind(all_data, data)
   }
@@ -325,7 +328,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
   follow_ups <- follow_ups[order(follow_ups$participant),]
   
   # Moving the 'id' column to the front
-  all_data <- all_data[c("participant", names(all_data)[-which(names(all_data) == "participant")])]
+  all_data <- all_data[c("participant", names(all_data)[-which(names(all_data) == "participant")])] 
   follow_ups <- follow_ups[c("participant", names(follow_ups)[-which(names(follow_ups) %in% c("participant", "PROLIFIC_PID"))])]
   
   list(data = all_data, rm_accuracy = rm_accuracy, rm_drop_out = rm_drop_out, follow_up = follow_ups, demographics = all_demographics)
