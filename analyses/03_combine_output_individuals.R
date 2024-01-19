@@ -113,3 +113,46 @@ model_details_by_session <- expand.grid(subject = 1:n_sub, model = models, exclu
 
 # get model output for all participants and conditions
 procesed_output_by_session <- t(apply(model_details_by_session, 1, function(x) getModelOutput(x, by_session = TRUE)))
+
+# combine with model details 
+model_output_by_session <- cbind(model_details_by_session, procesed_output_by_session)
+
+# model comparison 
+model_comparison_by_session <- model_output_by_session %>%
+  pivot_wider(names_from = model, values_from = looic) %>%
+  # simplify column names
+  rename("looic_null" = `indi-prior`, "looic_alt" = `indi-prior-consensus`) %>%
+  # collapse across models
+  group_by(subject, excluded_condition) %>%
+  summarise(
+    consensus_estimate = maxNA(consensus_estimate),
+    lower_CI = maxNA(lower_CI),
+    upper_CI = maxNA(upper_CI),
+    looic_null = maxNA(looic_null),
+    looic_alt = maxNA(looic_alt)
+  ) %>%
+  mutate(looic_diff = looic_null - looic_alt,
+         best_model = ifelse(looic_diff > 0, "Alternative Model", "Null Model"))%>%
+  rename("session_number" = excluded_condition)
+
+
+save(model_comparison_by_session, file = here("data/derived/model_comparison_by_session.Rdata"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
