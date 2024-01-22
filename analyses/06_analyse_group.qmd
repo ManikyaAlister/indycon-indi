@@ -13,6 +13,10 @@ editor: visual
 library(here)
 library(tidyverse)
 library(brms)
+library(ggridges)
+library(ggpubr)
+library(cowplot)
+library(scales)
 ```
 
 ```{r}
@@ -26,6 +30,64 @@ d_independence <- data %>%
 
 d_consensus_only <- data %>% 
   filter(consensus != "dependent")
+```
+
+# Priors
+
+```{r}
+# load claim info
+claim_info <- read.csv(here("data/derived/source_data.csv"))
+full_claims <- claim_info %>%
+  select(claimId, claim)
+
+# make darta set that include the full claim
+data$full_claim <- claim_info$claim[match(data$claim, claim_info$claimId)]
+
+# Make pretty -- make it so that each plot fill is part of a gradient
+colour_gradient = scales::seq_gradient_pal("blue", "seagreen" , "Lab") (seq(0,1,length.out=15))
+
+# Make figure (I know you might want to just use the code for the plot in the last paper but 
+claim_types <- unique(data$claim_type)
+
+plot_list = NULL
+# here's my attempt at reproducing it! Still needs a few tweaks)
+for (i in 1:length(claim_types)){
+  ct <- claim_types[i]
+ 
+  plot_data <-  data %>%
+   filter(claim_type == ct) 
+ 
+ medians <- plot_data %>%
+   group_by(full_claim) %>%
+   summarise(median_prior = median(pre)) %>%
+   arrange(median_prior)
+ 
+ plot_data$full_claim <- factor(plot_data$full_claim, levels = medians$full_claim)
+ 
+ plot <- plot_data %>%
+  ggplot(aes(x = pre, y = full_claim))+
+  geom_density_ridges(aes(fill = full_claim), alpha = .3, scale = 1.5)+
+  scale_fill_manual(values = colour_gradient)+
+   scale_y_discrete(labels = label_wrap(70), position = "right")+
+   labs(title = ct, x = "Prior", y = "")+
+   xlim(0,100)+
+  theme_classic()+
+    theme(
+      plot.margin = unit(c(1.5, 0.5, 0.5, 0.5), "cm"),
+      legend.position = "none",
+        axis.text.y = element_text(size = 12, lineheight = 1.2)  # Adjust the size as needed
+
+    )
+ plot_list[[i]] <- plot
+}
+
+# re order so that similar claim types are together
+plot_list <- plot_list[c(1,4,2,3)]
+
+ggarrange(plotlist = plot_list, nrow = 2, ncol = 2)
+ggsave("07_Plots/priors.png", width = 20, height = 20)
+
+
 ```
 
 # What are the average belief updates for each claim type?
