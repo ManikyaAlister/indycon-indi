@@ -220,6 +220,12 @@ cons_param_plot
 ```
 
 ```{r}
+model_comparison %>%
+  group_by(excluded_condition) %>%
+  summarise(median = median(consensus_estimate))
+```
+
+```{r}
 combined_param_plots <- ggarrange(cons_param_plot, ind_param_plot, common.legend = TRUE, ncol = 1, nrow = 2)
 combined_param_plots
 ggsave(plot = combined_param_plots, filename = here("analyses/07_Plots/combined-param-plot.png"), width = 10, height = 4)
