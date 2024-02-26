@@ -402,7 +402,7 @@ checkParticipant = function(id){
     filter(PROLIFIC_PID == id)
   d
 }
-#check <- checkParticipant("656f042cc31f84842ad587e4")
+check <- checkParticipant("656f042cc31f84842ad587e4")
 
 
 
