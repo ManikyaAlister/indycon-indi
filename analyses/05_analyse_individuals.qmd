@@ -39,10 +39,10 @@ model_comparison_ind <- model_comparison %>%
 
 ind_param_plot <- model_comparison_ind %>%
   ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
-  geom_point(aes(shape = best_model)) +
+  geom_point(aes(shape = best_model), size =3) +
   geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
   labs(title = "Independent Consensus v Dependent Consensus",
-       x = "Subject (Ordered by Independence Parameter)",
+       x = "Participant (Ordered by independence parameter, > 0 = more belief in independence, < 0 = more belief in dependence)",
        y = "Independence Parameter") +
   geom_hline(yintercept = 0, colour = "black")+
   theme_bw() +
@@ -96,7 +96,7 @@ model_comparison %>%
   geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
   facet_grid(~excluded_condition)+
   labs(title = "Individual Sensitivity to Consensus Effects",
-       x = "Subject (ordered by independence parameter with contested trials removed)",
+       x = "Participant (Ordered by independence parameter, higher = more belief in indeoendence)",
        y = "Independence Parameter") +
   geom_hline(yintercept = 0, colour = "black")+
   theme_bw() +
@@ -197,6 +197,45 @@ cor_alt
 
 ```
 
+Andy is also interested to know what the correlation looks like when we include participants who were labelled as being best fit by the alternative model in *either* session 1 or session 2, as well as overall.
+
+```{r}
+# find participants who were best fit by the alternative model in at least one session
+at_least_one_session <- model_comparison_by_session %>% 
+  mutate(best_model_code = case_when(
+    best_model == "Null Model" ~ 0,
+    best_model == "Alternative Model"~ 1
+  )) %>%
+  group_by(subject) %>%
+  # see which participant was best fit by the alternative model in any session
+  summarise(was_alt = max(best_model_code)) %>%
+  # only inclulde participants who were best fit by the model in at least one session
+  filter(was_alt == 1) %>%
+  select(subject) %>%
+  as.vector()
+
+
+session_estimates_at_least_one <- session_estimates %>%
+  filter(subject %in% at_least_one_session[[1]] | best_model_overall == "Alternative Model")
+
+plot(session_estimates_at_least_one$consensus_estimate_1, session_estimates_at_least_one$consensus_estimate_2, xlab = "Session 1", ylab = "Session 2")
+
+cor(session_estimates_at_least_one$consensus_estimate_1, session_estimates_at_least_one$consensus_estimate_2)
+
+```
+
+The correlation is way smaller, but I'm not convinced that this is particularly informative as to the overall quality of our analysis/consistency of the results. If participants were labelled as being best described by the alternative model in only 1 session but not overall, this actually means that our analysis is doing a good job only classifying people who are consistently showing a particular behavior across the two sessions. It does tell us that having half the number of trials makes the analysis misleading because it can identify people as being best fit by the alternative model even when their results aren't consistent across sessions, which further justifies our sample size, but I do not think the low correlation means we need to add any kind of caveat about our results being inconsistent from session 1 to session 2.
+
+```{r}
+d_consensus_estimate <- model_comparison_by_session %>% 
+  pivot_wider(names_from = session_number, values_from = c(consensus_estimate, lower_CI, upper_CI), id_cols = subject) %>%
+  relocate(lower_CI_2, .after = upper_CI_1)
+
+d_consensus_estimate = bind_cols(d_consensus_estimate, model_comparison_ind[,3:5])
+
+save(d_consensus_estimate, file = here("data/derived/d_consensus_estimate.Rdata"))
+```
+
 # How many people aren't sensitive to a consensus at all, regardless of independence?
 
 ```{r}
@@ -206,11 +245,12 @@ cons_param_plot <- model_comparison %>%
   rename("Best Model" = best_model)  %>%
   ggplot(aes(x = reorder(as.character(subject), consensus_estimate), y = consensus_estimate, colour = `Best Model`)) +
   #ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
-  geom_point(aes(shape = `Best Model`)) +
+  geom_point(aes(shape = `Best Model`), size = 3) +
   geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
   labs(title = "Independent Consensus v Independent Contested (No Consensus)",
-       x = "Subject (Ordered by Consensus Parameter)",
+       x = "Participant (Ordered by consensus parameter, higher = more belief in consensus)",
        y = "Consensus Parameter") +
+  ylim(-10, 58)+
   geom_hline(yintercept = 0, colour = "black")+
   theme_bw() +
     theme(axis.text.x = element_blank(),
@@ -241,24 +281,28 @@ self_report <- as.data.frame(all_data[[4]])
 
 # get just the multiple choice anser
 self_report_mc <- self_report$self_report_strategy
-self_report$subject <- 1:length(self_report[,1])
+#self_report$subject <- 1:length(self_report[,1])
+self_report$coefficient <- model_comparison_ind$consensus_estimate
+
+self_report %>%
+  group_by(self_report_strategy) %>%
+  summarise(count = n(), mean_estimate = mean(coefficient))
 
 mc_tally <- table(self_report_mc)
-names(mc_tally) <- c("Consensus Only", "Diverse Sources", "None of Above", "No Strategy", "Repeated Sources")
+names(mc_tally) <- c("Consensus Only", "Independent", "None of Above", "No Strategy", "Dependent")
 
 mc_tally_df <- as.data.frame(cbind(names(mc_tally), mc_tally)) 
 colnames(mc_tally_df) <- c("Response", "Count")
-mc_tally_df$Response <- factor(mc_tally_df$Response, levels = c("Diverse Sources", "Repeated Sources", "Consensus Only", "No Strategy", "None of Above")) 
+mc_tally_df$Response <- factor(mc_tally_df$Response, levels = c("Independent", "Dependent", "Consensus Only", "No Strategy", "None of Above")) 
 
-mc_tally_df %>%
+insight_barplot <- mc_tally_df %>%
   mutate(Count = as.numeric(Count)) %>%
   ggplot(aes(x = Response, y = Count, fill = Response)) +
-  geom_col(color = "darkgreen", size = .5) +
+  geom_col(color = "black", size = .5) +
   theme_bw() +
-  theme(legend.position = "none") + 
-  scale_fill_brewer(palette = "Greens")
+  theme(legend.position = "none")  
+  #scale_fill_brewer(palette = "Greens")
 
-  ggsave(filename = here("analyses/07_Plots/self_report.png"), width = 7, height = 3)
 
 ```
 
@@ -285,6 +329,45 @@ prop_diverse_pos <- sum(pos_consensus$reported_strategy == "diverse", na.rm = TR
 prop_diverse_comparison <- c(`Full Sample` = prop_diverse_full, `Positive Beta` = prop_diverse_pos)
 
 barplot(prop_diverse_comparison, ylim = c(0,1))
+```
+
+```{r}
+model_comparison_ind$self_report <- self_report$self_report_strategy
+
+model_comparison_ind <- model_comparison_ind %>% 
+  filter(!is.na(self_report)) %>%
+  mutate(`Self Reported Strategy` = case_when(
+    self_report == "diverse" ~ "Independent",
+    self_report == "repeated" ~ "Dependent",
+    self_report == "consensusOnly" ~ "Consensus Only",
+    self_report == "noStrategy" ~ "No Strategy",
+    self_report == "none" ~ "None of Above"
+  ))
+
+# need to re-do the subject order with the NA participant removed
+ordered_subjects <- reorder(as.character(model_comparison_ind$subject), model_comparison_ind$consensus_estimate)
+
+  
+ind_param_plot_self_report <- model_comparison_ind %>%
+  #adjust order of report options in legend
+  mutate(`Self Reported Strategy` = factor(`Self Reported Strategy`, levels = c("Independent", "Dependent", "Consensus Only", "No Strategy", "None of Above"))) %>%
+  ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = `Self Reported Strategy`)) +
+  geom_point(aes(), size =3) +
+  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
+  labs(title = "Independent Consensus v Dependent Consensus (Coloured by Self Reported Strategy)",
+       x = "Participant (Ordered by independence parameter, > 0 = more belief in independence, < 0 = more belief in dependence)",
+       y = "Independence Parameter") +
+  geom_hline(yintercept = 0, colour = "black")+
+  theme_bw() +
+    theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = "none") 
+
+ind_param_plot_self_report
+
+combined_insight_plots <- ggarrange( insight_barplot, ind_param_plot_self_report,common.legend = FALSE, ncol = 1, nrow = 2)
+
+ggsave(plot = combined_insight_plots, filename = here("analyses/07_Plots/combined-insight-plot.png"), width = 10, height = 6)
 ```
 
 ## Participants who weren't sensitive to consensus
