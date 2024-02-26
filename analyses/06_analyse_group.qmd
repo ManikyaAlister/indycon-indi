@@ -2,9 +2,8 @@
 title: "Group Level Analyses"
 author: "Manikya Alister"
 format: 
-  html:
-    code-fold: true
-    code-summary: "Show the code"
+  docx:
+    page-width: 7.5
 editor: visual
 ---
 
@@ -17,6 +16,7 @@ library(ggridges)
 library(ggpubr)
 library(cowplot)
 library(scales)
+library(emmeans)
 ```
 
 ```{r}
@@ -224,11 +224,26 @@ getParamDetails(output)
 
 ```
 
+```{r}
+# post hoc comparisons 
+em <- emmeans(output, ~claim_type)
+summary(pairs(em), point.est = mean, level = .89)
+
+```
+
 ### Excluding dependent condition (independent v contested)
 
 ```{r}
 load(here("analyses/02_output/group-prior-consensusXclaim-rm-dependent.Rdata"))
+summary(output)
 getParamDetails(output)
+
+```
+
+```{r}
+# post hoc comparisons 
+em <- emmeans(output, ~claim_type:consensus)
+summary(pairs(em), point.est = mean, level = .89)
 ```
 
 Initial thoughts. No group level effects of independence when looking at the estimate, but according to model comparison it's still better than the null. No independence X claim type interaction despite hinting showing possible signs in the figures.
