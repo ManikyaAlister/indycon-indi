@@ -1,6 +1,6 @@
 ---
-title: "Simulation Analyses"
-author: "Manikya Alister"
+title: "Power Analysis Simulation"
+author: "Anonymised for peer review"
 format: 
   html:
     embed-resources: true
@@ -24,14 +24,16 @@ How many trials do we need to be able to detect an effect of source independence
 
 ## Simulation method
 
-I simulated these data based on real participant data from @alister2022. There were two main manipulations in this study: 2 consensus direction (i.e., whether the members of the consensus were arguing for or against the claim) X 2 consensus independence (i.e., whether the members of the consensus all shared the same primary source, or all shared different sources). This means there were four "cells" in the experiment. For each cell, I calculated the mean and standard deviation belief update (the difference between their 1-100 belief in the claim before versus after seeing the consensus). Using these means and standard deviations, I simulated either 3, 6, 9, 12, 16, or 20 trials per cell. Because there were 4 cells, this resulted in 6 data sets with 12, 24, 36, 48, 64, or 80 trials per participant.
+I simulated these data based on the effect sizes of real participant data from @alister2022, a study with much fewer trials per participant. There were two main manipulations in the original study: 2 consensus direction (i.e., whether the members of the consensus were arguing for or against the claim) X 2 consensus independence (i.e., whether the members of the consensus all shared the same primary source, or all shared different sources). This means there were four "cells" in the original experiment experiment. For each cell, I calculated the mean and standard deviation belief update (the difference between their 1-100 belief in the claim before versus after seeing the consensus). Using these means and standard deviations, I simulated either 3, 6, 9, 12, 16, or 20 trials per cell.
+
+In this simulation study we were only interested in independent trials compared to dependent trials, leaving out any comparisons to a contested consensus. This was because we expected contested comparisons to have a much larger effect size, so if there was sufficient power for the independent v dependent comparison, there should be more than enough power to detect a contested v independent comparison.
 
 ```         
 ```
 
 ## Modelling
 
-The goal of this simulation was to fit separate Bayesian linear models to each participant. Usually, what we do is fit these models to all of the participants, with participant as a random effect, in order to identify group level consensus effects, but this isn't able to capture individual differences.
+The goal of this simulation was to fit separate Bayesian linear models to each participant. Usually, what we do is fit these models to all of the participants, with participant as a random effect, in order to identify group level consensus effects, but this isn't really able to capture individual differences.
 
 I kept the modelling reasonably simple, with a null model that only considers the consensus direction:
 
@@ -83,7 +85,7 @@ adjusted_n <- length(unique(all_output$participants))
 
 Using LOOIC, this analysis compared which participants were best fit to the alternative model versus the null model.
 
-The red line indicates a very rough estimate for the number of participants we thought might be best fit by an alternative model. We calculated this by participants who consistently had responses in one source dependence condition higher than their median response (so the number of participants who had \> 50% of their responses for one kind of source larger than the median score).
+The red line indicates a very rough estimate for the number of participants we thought might be best fit by an alternative model. We calculated this by participants who, in the Alister et al. study, consistently had responses in one source dependence condition higher than their median response (so the number of participants who had \> 50% of their responses for one kind of source larger than the median score).
 
 ```{r}
 # see how many people were best fit by the alternative model as a function of n trials. 
@@ -192,6 +194,6 @@ sum %>%
   theme_bw()
 ```
 
-It looks like with 40 trials, we get pretty close to the maximum estimate for each condition. It's a bit worse for the independence condition, but based on the trend it doesn't really look like adding more trials will result in more people having credible estimates.
+It looks like with 40 trials (20 trials per cell), we get pretty close to the maximum estimate for each condition. It's a bit worse for the independence condition, but based on the trend it doesn't really look like adding more trials will result in more people having credible estimates.
 
 # 
