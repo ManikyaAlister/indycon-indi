@@ -156,7 +156,3 @@ getParamDetails(output)
 load(here("analyses/02_output/broad-group-prior-consensusXclaim-rm-dependent.Rdata"))
 getParamDetails(output)
 ```
-
-Initial thoughts. No group level effects of independence when looking at the estimate, but according to model comparison it's still better than the null. No independence X Broad Claim Type interaction despite hinting showing possible signs in the figures.
-
-Looks like there's an interaction between Broad Claim Type X consensus, such that people are more convinced by a consensus generally under certain kinds of claims.
