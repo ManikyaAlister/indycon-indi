@@ -1,6 +1,6 @@
 ---
-title: "Group Level Analyses"
-author: "Manikya Alister"
+title: "Follow Up Group Level Modelling"
+author: "Anonymised for peer review"
 format: 
   html:
     code-fold: true
@@ -33,7 +33,7 @@ d_consensus_only <- data %>%
 ### Independent v Dependent consensus
 
 ```{r}
-mean_updates <- d_independence %>%
+mean_updates <- data %>%
   group_by(broad_claim_type, consensus) %>%
   summarise(mean_update = mean(update),
     se_update = sd(update) / sqrt(n())
@@ -44,7 +44,7 @@ mean_updates %>%
   geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
   geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
                 position = position_dodge(0.9), width = 0.2) +
-  geom_jitter(data = d_independence, aes(x = broad_claim_type, y = update, colour = consensus), 
+  geom_jitter(data = data, aes(x = broad_claim_type, y = update, colour = consensus), 
               position = position_jitterdodge(), alpha = 0.2) +
   ylim(-50, 100) +
   labs(title = "",
