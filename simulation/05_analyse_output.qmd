@@ -1,12 +1,17 @@
 ---
 title: "Simulation Analyses"
-author: "Manikya Alister"
+#author: "Manikya Alister"
 format: 
-  html:
-    code-fold: true
-    code-summary: "Show the code"
+  pdf: 
+    execute:
+      echo: false
+      warning: false
+  # html:
+  #   code-fold: true
+  #   code-summary: "Show the code"
 editor: visual
 bibliography: references.bib
+toc: true
 ---
 
 ```{r}
