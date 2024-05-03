@@ -1,0 +1,467 @@
+---
+title: "Exploratory Analyses"
+author: "Ee Von Soh & Manikya Alister"
+date: "2024-01-16"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include = FALSE}
+# Load Libraries
+library(here)
+library(tidyverse)
+library(dplyr)
+
+# make default that code is not shown in knit
+knitr::opts_chunk$set(echo = FALSE)
+
+# make default that warning messages are not shown in knit
+knitr::opts_chunk$set(warning = FALSE)
+
+# make default that all messages are not shown in knit
+knitr::opts_chunk$set(message = FALSE)
+
+
+# load data
+load(here("data/clean/all_data_clean.Rdata"))
+
+# All data
+data <- all_data[[1]] %>%
+  mutate(update = post_adjusted - pre_adjusted) # mutate() - create new column(s) that are functions of existing variables
+
+# Only data for dependent and independent condition
+d_independence <- data %>% 
+  filter(consensus != "contested")
+
+# Only data for independent and contested condition
+d_consensus_only <- data %>% 
+  filter(consensus != "dependent")
+
+```
+
+
+
+# Demographics 
+
+```{r, include = FALSE}
+demographics <- all_data$demographics
+```
+
+# Age
+```{r}
+# Since Age is a Character, convert it to a numeric
+demographics$demographics_age <- as.integer(demographics$demographics_age)
+
+# Mean age
+age_stats <- demographics |> 
+  summarize(mean_age = mean(demographics_age))
+```
+
+```{r}
+ggplot(demographics, aes(x = demographics_age)) +  
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black") +
+  geom_vline(aes(xintercept = mean_age), age_stats, color = "red", linewidth = 1) +   # Geom_vline -> visualise the mean
+  labs(title = "Age Distribution", x = "Age", y = "Frequency") +
+  theme_minimal()
+```
+
+# Gender
+```{r}
+# Frequency table for gender
+gender_counts <- table(demographics$demographics_gender) 
+
+# Convert the table to a data frame
+gender_counts_df <- as.data.frame(gender_counts)
+
+# Rename the variables in the data frame
+colnames(gender_counts_df) <- c("Gender", "Count")
+
+# Calculate percentage
+gender_counts_df$Percentage <- gender_counts_df$Count / sum(gender_counts_df$Count) * 100
+
+# Sort the data frame by percentage in descending order
+gender_counts_df <- gender_counts_df[order(-gender_counts_df$Percentage), ]
+
+# Keep only the top 2 rows
+gender_counts_top2 <- head(gender_counts_df, 2)
+
+# Create a pie chart with labels for the top 2 highest percentages
+ggplot(gender_counts_df, aes(x = "", y = Count, fill = Gender)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar("y") +
+  geom_text(data = gender_counts_top2,
+            aes(label = paste0(round(Percentage, 1), "%")),
+            position = position_stack(vjust = 0.5),
+            color = "white",
+            size = 4) +
+  labs(title = "Gender Distribution", fill = "Gender") +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        panel.grid = element_blank(),
+        plot.title = element_text(hjust = 0.5))
+```
+
+
+# Education
+```{r}
+table_education <- table(demographics$demographics_education)
+
+# Convert the table to a data frame
+df_education <- as.data.frame(table_education)
+
+# Rename the variables in the data frame
+colnames(df_education) <- c("Education", "Count")
+
+# Create a bar plot
+ggplot(df_education, aes(x = Education, y = Count, fill = Education)) +
+  geom_bar(stat = "identity", color = "black", alpha = 0.6) +
+  labs(title = "Education Distribution", x = "Education Level", y = "Frequency") +
+  theme_minimal()
+```
+
+# Social Media Usage 
+```{r}
+social_media_df <- demographics %>% select(demographics_facebook, demographics_twitter)
+
+barplot(table(demographics$demographics_facebook, demographics$demographics_twitter), 
+        beside = TRUE, main = "Social Media Usage")
+```
+
+
+## Merge Data with Demographics Information
+```{r}
+merge_data_dem <- merge(data, demographics, by = c("participant"))
+```
+
+# Are people equally persuaded by claims arguing for (pro) and against (con)?
+
+Previous studies using our paradigm found that people were more or less equally convinced when posts argued for versus against the claim. For this reason, to preserve power in the individual level nalyses, we transformed the direction of belief changes on trials arguing against the claim rather than adding argument direction as a predictor. But was this a safe assumption? It's possible that the claim type X consensus interaction might only hold for tweets arguing a certain direction. 
+
+```{r}
+data_raw_update <- data %>%
+    filter(consensus != "contested") %>%
+    mutate(update_raw = post-pre)
+
+
+mean_updates_procon <- data_raw_update  %>%
+  group_by(claim_type, consensus, side_A) %>%
+  summarise(mean_update = mean(update_raw),
+            se_update = sd(update_raw) / sqrt(n()),
+                        n_obs = n()
+  )
+
+colour_scale <- c("darkblue", "red")
+
+mean_updates_procon %>% 
+  ggplot(aes(x = side_A, y = mean_update, fill = consensus)) + 
+  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
+  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
+                position = position_dodge(.9), width = 0.2) +
+  geom_jitter(data = data_raw_update, aes(y = update_raw, colour = consensus, group = consensus),
+            position = position_jitterdodge(dodge.width = .9, jitter.width = .2), alpha = 0.1) +
+  ylim(-40, 69) +
+  labs(title = "",
+       x = "Claim Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_bw()+
+  facet_wrap(~claim_type)+
+  theme(legend.position = "top") +
+  labs(colour = "Trial Type", fill = "Trial Type")+
+  scale_color_manual(values = colour_scale) + 
+  scale_fill_manual(values = colour_scale)   
+```
+
+Although people seemed to be generally more convinced by posts arguing against the claim, the trend whereby a concencus was more convincing when the claim was more knowable appears to hold. 
+
+# How do belief updates change as a funcion of source type?
+
+## Consensus as a function of source type
+```{r, message = FALSE}
+mean_updates <- data  %>%
+  group_by(source, consensus) %>%
+  summarise(mean_update = mean(update),
+            se_update = sd(update) / sqrt(n()),
+                        n_obs = n()
+
+  )
+
+mean_updates_w_claim_type <- data %>%
+  group_by(source, consensus, claim_type) %>%
+  summarise(mean_update = mean(update),
+            se_update = sd(update) / sqrt(n()),
+            n_obs = n()
+  )
+```
+
+```{r}
+colour_scale <- c("purple", "darkblue", "red")
+
+mean_updates %>% 
+  ggplot(aes(x = source, y = mean_update, fill = consensus)) + 
+  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
+  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
+                position = position_dodge(.9), width = 0.2) +
+  geom_jitter(data = data, aes(source, y = update, colour = consensus, group = consensus), 
+              position = position_jitterdodge(dodge.width = .9, jitter.width = .2), alpha = 0.1) +
+  ylim(-30, 69) +
+  labs(title = "",
+       x = "Claim Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_bw()+
+  theme(legend.position = "top") +
+  labs(colour = "Trial Type", fill = "Trial Type")+
+  scale_color_manual(values = colour_scale) + 
+  scale_fill_manual(values = colour_scale)    
+
+```
+
+It looks like the effect of independence only appeared when the primary source was a university. When it was a news outlet, there did not appear to be any difference between independent and dependent sources at the group level. The standard consensus effect (contested v independent) did not appear to be influenced by source type. 
+
+## Consensus as a function of source type *and* claim type 
+```{r}
+# Create a new ggplot with facet_wrap
+mean_updates %>% 
+  ggplot(aes(x = source, y = mean_update, fill = consensus)) + 
+  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
+  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
+                position = position_dodge(.9), width = 0.2) +
+  geom_jitter(data = data, aes(source, y = update, colour = consensus, group = consensus), 
+              position = position_jitterdodge(dodge.width = .9, jitter.width = .2), alpha = 0.1) +
+  facet_wrap(~claim_type)+
+  ylim(-30, 69) +
+  labs(title = "",
+       x = "Claim Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_bw()+
+  theme(legend.position = "top") +
+  labs(colour = "Trial Type", fill = "Trial Type")+
+  scale_color_manual(values = colour_scale) + 
+  scale_fill_manual(values = colour_scale)    
+```
+Across all claim types, it seems that the effect of source independence only occurred when the source was a university. 
+
+### Contested V Dependent Consensus
+```{r, message = FALSE}
+mean_updates_co <- d_consensus_only %>%
+  group_by(source, consensus) %>%
+  summarise(mean_update = mean(update),
+    se_update = sd(update) / sqrt(n())
+)
+
+mean_updates_co_w_claim_type <- d_consensus_only %>%
+  group_by(source, consensus, claim_type) %>%
+  summarise(mean_update = mean(update),
+    se_update = sd(update) / sqrt(n())
+)
+```
+
+
+
+
+```{r, message = FALSE}
+# merge_data_dem %>%
+#   group_by(consensus, demographics_education) %>%
+#   summarise(mean_update = mean(update))
+```
+### Functions for Plotting
+```{r}
+# Define a function for plotting a basic grouped bar plot with optional ordering
+plot_grouped_bar <- function(by_variable, column, x_label, usage_ordering = NULL, label_angle = 0) {
+  
+  if (!is.null(usage_ordering)) {
+    plot <- ggplot(data = by_variable, aes(x = factor({{column}}, levels = usage_ordering), y = mean_update, fill = consensus)) +
+      geom_bar(position = "dodge", stat = "identity", color = "black") + 
+      labs(x = x_label, y = "Mean Update (Post - Prior)") + 
+      theme_minimal() + 
+      theme(axis.text.x = element_text(angle = label_angle, hjust = 1))
+  } else {
+    plot <- ggplot(data = by_variable, aes(x = {{column}}, y = mean_update, fill = consensus)) +
+      geom_bar(position = "dodge", stat = "identity", color = "black") + 
+      labs(x = x_label, y = "Mean Update (Post - Prior)") + 
+      theme_minimal() + 
+      theme(axis.text.x = element_text(angle = label_angle, hjust = 1))
+  }
+  
+  return(plot)
+}
+```
+
+```{r}
+# Add labels to plot
+add_num_obs <- function(data, aggregate_data, plot, column, col_name, usage_ordering = NULL, vjust = -1){
+  
+  count_num_participants <- data %>%
+    group_by({{column}}) %>%
+    summarise(n_participants = n()/60)
+  
+  # Merge the count data back into the by_social_media data frame
+  by_data_w_count <- merge(aggregate_data, count_num_participants, by = col_name, all.x = TRUE)
+  
+  if (!is.null(usage_ordering)){
+    new_plot <- plot + geom_text(data = by_data_w_count, 
+            aes(x = factor({{column}}, levels = usage_ordering), y = 0, label = n_participants), position = position_dodge(1), vjust = vjust, inherit.aes = FALSE)
+  }else{
+    new_plot <- plot + geom_text(data = by_data_w_count, 
+            aes(x = {{column}}, y = 0, label = n_participants), position = position_dodge(1), vjust = vjust, inherit.aes = FALSE)
+  }
+
+  return(new_plot)
+}
+```
+
+```{r}
+## Add Jittered Points to Plot
+add_jitter <- function(data, plot, width = 0.2, alpha = .1){
+  
+  new_plot <- plot + geom_jitter(data = data, aes(y = update, colour = consensus), position = position_jitterdodge(dodge.width = width), alpha = alpha) 
+  
+  return(new_plot)
+}
+```
+
+### Education
+```{r, message = FALSE}
+by_education <- merge_data_dem %>%
+  group_by(consensus, demographics_education) %>%
+  summarise(mean_update = mean(update), n_obs  = n()/60)
+
+by_education
+```
+#### Grouped Bar Plot with Jitters
+```{r}
+plot_education <- by_education %>%
+  ggplot(aes(x = demographics_education, y = mean_update)) +
+  geom_col(position = "dodge", aes(fill = consensus), colour = "black") +
+  geom_jitter(data = merge_data_dem, aes(y = update, colour = consensus), position = position_jitterdodge(dodge.width = 1), alpha = .1) +
+  labs(title = " ", x = "Education", y = "Mean Update (Post - Prior)") +
+  theme_bw()
+
+```
+
+#### With Label
+```{r}
+plot_education_with_num_obs <- add_num_obs(merge_data_dem, by_education, plot_education, demographics_education, "demographics_education", vjust = -6)
+
+plot_education_with_num_obs
+```
+
+### Social Media Usage
+```{r}
+# Constant
+USAGE_ORDERING <- c("daily", "weekly", "monthly", "rarely", "never")
+```
+
+#### Facebook
+```{r, message = FALSE, include = FALSE}
+# Ignore this
+by_facebook <- merge_data_dem %>%
+  group_by(consensus, demographics_facebook) %>%
+  summarise(mean_update = mean(update))
+```
+
+```{r, message = FALSE, include = FALSE}
+# Ignore this
+count_facebook_usage <- merge_data_dem %>%
+  group_by(demographics_facebook) %>%
+  summarise(n_participants = n()/60)
+```
+
+```{r, message = FALSE, include = FALSE}
+# Ignore this
+
+# Merge the count data back into the by_facebook data frame
+by_facebook_merge <- merge(by_facebook, count_facebook_usage, by = "demographics_facebook", all.x = TRUE)
+```
+
+```{r, include = FALSE}
+# Ignore this
+plotA <- ggplot(data = by_facebook, aes(x = factor(demographics_facebook, levels = USAGE_ORDERING), y = mean_update, fill = consensus)) +
+  geom_bar(position = "dodge", stat = "identity", color = "black") + 
+  labs(x = "Facebook Usage", y = "Mean Update (Post - Prior)") + 
+  theme_minimal()
+```
+
+```{r, include = FALSE}
+# Ignore this
+plotA + geom_text(data = by_facebook_merge, 
+            aes(x = factor(demographics_facebook, levels = USAGE_ORDERING), y = 0, label = n_participants),
+            position = position_dodge(1), vjust = -22, inherit.aes = FALSE)
+```
+
+##### Basic Grouped Bar Plot
+```{r, message = FALSE}
+by_facebook <- merge_data_dem %>%
+  group_by(consensus, demographics_facebook) %>%
+  summarise(mean_update = mean(update))
+
+plot_facebook <- plot_grouped_bar(by_facebook, demographics_facebook, x_label = "Facebook Usage", usage_ordering = USAGE_ORDERING)
+
+```
+
+##### With Labels for total observations
+```{r}
+plot_facebook_with_num_obs <- add_num_obs(merge_data_dem, by_facebook, plot_facebook, demographics_facebook, col_name = "demographics_facebook", usage_ordering = USAGE_ORDERING, vjust = -22)
+
+plot_facebook_with_num_obs
+```
+
+##### With Jittered Points
+
+#### Twitter
+##### Basic Grouped Bar Plot
+```{r, message = FALSE}
+by_twitter <- merge_data_dem %>%
+  group_by(consensus, demographics_twitter) %>%
+  summarise(mean_update = mean(update))
+
+plot_twitter <- plot_grouped_bar(by_twitter, demographics_twitter, x_label = "Twitter Usage", usage_ordering = USAGE_ORDERING)
+
+```
+
+##### With Labels 
+```{r}
+plot_twitter_with_num_obs <- add_num_obs(merge_data_dem, by_twitter, plot_twitter, demographics_twitter, "demographics_twitter", usage_ordering =  USAGE_ORDERING, vjust = -22)
+
+plot_twitter_with_num_obs
+```
+
+### Politics
+#### Basic Grouped Bar Plot
+```{r, message = FALSE}
+by_politics <- merge_data_dem %>%
+  group_by(consensus, demographics_politics) %>%
+  summarise(mean_update = mean(update))
+
+plot_politics <- plot_grouped_bar(by_politics, demographics_politics, x_label = "Politics", label_angle = 45)
+
+```
+
+#### With Labels
+```{r}
+plot_politics_with_num_obs <- add_num_obs(merge_data_dem, by_politics, plot_politics, demographics_politics, "demographics_politics", vjust = -16.5)
+
+plot_politics_with_num_obs
+```
+
+### What are the Average Deltas (independent - dependent) for each claim type
+```{r}
+deltas_claim_type <- merge_data_dem %>% 
+  filter(consensus != "contested") %>%
+  pivot_wider(names_from = consensus, values_from = update) %>%
+  group_by(participant) %>%
+  summarise(delta = mean(independent, na.rm = TRUE)-mean(dependent, na.rm = TRUE), age = mean(demographics_age))
+  
+plot(deltas_claim_type$delta, deltas_claim_type$age)
+cor(deltas_claim_type$delta, deltas_claim_type$age)
+
+```
+
+
+
+
+
+
+
