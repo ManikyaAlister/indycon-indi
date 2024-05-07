@@ -131,7 +131,7 @@ ggsave(filename = here("analyses/07_Plots/update-by-topic.png"), width = 6, heig
 
 ```
 
-# What are the average deltas (independent - dependent) for each claim type?
+# What were the average deltas (independent - dependent) for each claim type?
 
 ```{r}
 deltas_claim_type <- d_independence %>% 
@@ -179,7 +179,7 @@ model_LOOICs %>%
          all_se = round(all_se))
 ```
 
-## Estimates
+## Estimates of winning model
 
 ### Excluding contested condition (independent v dependent)
 
