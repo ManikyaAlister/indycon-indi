@@ -1,16 +1,17 @@
 ---
 title: "Group Level Analyses"
-author: "Manikya Alister"
+author: "Anonymised for peer review"
 format: 
-<<<<<<< HEAD
-  docx:
-    page-width: 7.5
-=======
-  html:
-    code-fold: true
-    code-summary: "Show the code"
->>>>>>> de0e661 (by session models)
+  pdf: 
+    execute:
+      echo: false
+      warning: false
+  # html:
+  #   code-fold: true
+  #   code-summary: "Show the code"
 editor: visual
+toc: true
+number-sections: true
 ---
 
 ```{r}
@@ -18,14 +19,11 @@ editor: visual
 library(here)
 library(tidyverse)
 library(brms)
-<<<<<<< HEAD
 library(ggridges)
 library(ggpubr)
 library(cowplot)
 library(scales)
 library(emmeans)
-=======
->>>>>>> de0e661 (by session models)
 ```
 
 ```{r}
@@ -36,7 +34,6 @@ data <- all_data[[1]] %>%
 
 d_independence <- data %>% 
   filter(consensus != "contested")
-<<<<<<< HEAD
 
 d_consensus_only <- data %>% 
   filter(consensus != "dependent")
@@ -94,45 +91,29 @@ for (i in 1:length(claim_types)){
 # re order so that similar claim types are together
 plot_list <- plot_list[c(1,4,2,3)]
 
-ggarrange(plotlist = plot_list, nrow = 2, ncol = 2)
-ggsave("07_Plots/priors.png", width = 20, height = 20)
+prior_plot <- ggarrange(plotlist = plot_list, nrow = 2, ncol = 2)
+ggsave("07_Plots/priors.png", width = 20, height = 20, plot = prior_plot)
 
 
-=======
->>>>>>> de0e661 (by session models)
 ```
 
-# What are the average belief updates for each claim type?
+The priors plot is too large to show here, but it is in 07_Plots/priors.png (and on the OSF).
 
-<<<<<<< HEAD
-### Independent v Dependent consensus
+# What were the average belief updates for each claim type?
 
 ```{r}
 mean_updates <- data %>%
-=======
-<<<<<<<< HEAD:analyses/analyse_group.qmd
-========
-### Independent v Dependent consensus
-
->>>>>>>> de0e661 (by session models):analyses/06_analyse_group.qmd
-```{r}
-mean_updates <- d_independence %>%
->>>>>>> de0e661 (by session models)
   group_by(claim_type, consensus) %>%
   summarise(mean_update = mean(update),
     se_update = sd(update) / sqrt(n())
 )
 
-<<<<<<< HEAD
 colour_scale <- c("purple", "darkblue", "red")
 
-=======
->>>>>>> de0e661 (by session models)
 mean_updates %>% 
   ggplot(aes(x = claim_type, y = mean_update, fill = consensus)) + 
   geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
   geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
-<<<<<<< HEAD
                 position = position_dodge(.9), width = 0.2) +
   geom_jitter(data = data, aes(x = claim_type, y = update, colour = consensus, group = consensus), 
               position = position_jitterdodge(dodge.width = .9, jitter.width = .2), alpha = 0.1) +
@@ -150,51 +131,7 @@ ggsave(filename = here("analyses/07_Plots/update-by-topic.png"), width = 6, heig
 
 ```
 
-=======
-                position = position_dodge(0.9), width = 0.2) +
-  geom_jitter(data = d_independence, aes(x = claim_type, y = update, colour = consensus), 
-              position = position_jitterdodge(), alpha = 0.2) +
-  ylim(-50, 100) +
-  labs(title = "",
-       x = "Claim Type",
-       y = "Mean Update (Post - Prior)") +
-  theme_classic()
-
-```
-
-<<<<<<<< HEAD:analyses/analyse_group.qmd
-# What are the average deltas (independent - dependent) for each claim type? 
-========
->>>>>>> de0e661 (by session models)
-### Contested v Independent Consensus
-
-```{r}
-mean_updates_co <- d_consensus_only %>%
-  group_by(claim_type, consensus) %>%
-  summarise(mean_update = mean(update),
-    se_update = sd(update) / sqrt(n()),
-    post = mean(post)
-)
-
-mean_updates_co %>% 
-  ggplot(aes(x = claim_type, y = mean_update, fill = consensus)) + 
-  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
-  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
-                position = position_dodge(0.9), width = 0.2) +
-  geom_jitter(data = d_consensus_only, aes(x = claim_type, y = update, colour = consensus), 
-              position = position_jitterdodge(), alpha = 0.2) +
-  ylim(-50, 100) +
-  labs(title = "",
-       x = "Claim Type",
-       y = "Mean Update (Post - Prior)") +
-  theme_classic()
-```
-
 # What are the average deltas (independent - dependent) for each claim type?
-<<<<<<< HEAD
-=======
->>>>>>>> de0e661 (by session models):analyses/06_analyse_group.qmd
->>>>>>> de0e661 (by session models)
 
 ```{r}
 deltas_claim_type <- d_independence %>% 
@@ -224,28 +161,22 @@ load(here("data/derived/group_output_combined.Rdata"))
 
 ```{r}
 model_LOOICs %>%
-  filter(excluded_condition == "contested") %>%
-<<<<<<< HEAD
+  filter(excluded_condition == "contested" & !is_follow_up) %>%
+    select(-is_follow_up) %>%
   mutate(model_rank = rank(all_looic),
          all_looic = round(all_looic),
          all_se = round(all_se))
-=======
-  mutate(model_rank = rank(all_looic))
->>>>>>> de0e661 (by session models)
 ```
 
 ### Excluding dependent condition (independent v contested)
 
 ```{r}
 model_LOOICs %>%
-  filter(excluded_condition == "dependent") %>%
-<<<<<<< HEAD
+  filter(excluded_condition == "dependent" & !is_follow_up) %>%
+  select(-is_follow_up) %>%
     mutate(model_rank = rank(all_looic),
          all_looic = round(all_looic),
          all_se = round(all_se))
-=======
-  mutate(model_rank = rank(all_looic)) 
->>>>>>> de0e661 (by session models)
 ```
 
 ## Estimates
@@ -253,11 +184,7 @@ model_LOOICs %>%
 ### Excluding contested condition (independent v dependent)
 
 ```{r}
-<<<<<<< HEAD
 load(here("analyses/02_output/group-prior-consensus-claim-rm-contested.Rdata"))
-=======
-load(here("analyses/02_output/group-prior-consensusXclaim-rm-contested.Rdata"))
->>>>>>> de0e661 (by session models)
 
 getCredibleInt <- function(output, probs = c(0.055, 0.945), decimals = 3){ # default is 89% credible interval 
   posterior_sample <- as_draws_df(output)
@@ -282,7 +209,8 @@ getParamDetails(output)
 
 ```
 
-<<<<<<< HEAD
+#### Follow up of main effects
+
 ```{r}
 # post hoc comparisons 
 em <- emmeans(output, ~claim_type)
@@ -290,28 +218,19 @@ summary(pairs(em), point.est = mean, level = .89)
 
 ```
 
-=======
->>>>>>> de0e661 (by session models)
 ### Excluding dependent condition (independent v contested)
 
 ```{r}
 load(here("analyses/02_output/group-prior-consensusXclaim-rm-dependent.Rdata"))
-<<<<<<< HEAD
-summary(output)
+#summary(output)
 getParamDetails(output)
 
 ```
+
+#### Follow up main effects and interaction
 
 ```{r}
 # post hoc comparisons 
 em <- emmeans(output, ~claim_type:consensus)
-summary(pairs(em), point.est = mean, level = .89)
+#summary(pairs(em), point.est = mean, level = .89)
 ```
-
-Initial thoughts. No group level effects of independence when looking at the estimate, but according to model comparison it's still better than the null. No independence X claim type interaction despite hinting showing possible signs in the figures.
-
-Looks like there's an interaction between claim type X consensus, such that people are more convinced by a consensus generally under certain kinds of claims.
-=======
-getParamDetails(output)
-```
->>>>>>> de0e661 (by session models)
