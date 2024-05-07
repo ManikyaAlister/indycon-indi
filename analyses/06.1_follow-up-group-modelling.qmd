@@ -1,0 +1,319 @@
+---
+title: "Follow Up Group Level Modelling"
+author: "Anonymised for peer review"
+format: 
+  pdf: 
+    execute:
+      echo: false
+      warning: false
+  # html:
+  #   code-fold: true
+  #   code-summary: "Show the code"
+editor: visual
+toc: true
+number-sections: true
+bibliography: references.bib
+---
+
+```{r}
+#| include = FALSE
+library(here)
+library(tidyverse)
+library(brms)
+```
+
+```{r}
+load(here("data/derived/model_comparison.Rdata"))
+load(here("data/clean/all_data_clean.Rdata"))
+data <- all_data[[1]] %>%
+    mutate(update = post_adjusted - pre_adjusted) 
+
+d_independence <- data %>% 
+  filter(consensus != "contested")
+
+d_consensus_only <- data %>% 
+  filter(consensus != "dependent")
+```
+
+# Modelling With Broad Claim Type Categories: Knowable vs. Unknowable
+
+We preregistered that if we did not find an interaction between consensus X claim type for the four categories of claims then we would repeat the analyses on the two categories of claims. We did not find a claim type X consensus interaction for the independent X dependent comparison, so here we report the modelling with the two broad claim types.
+
+## Qualitative Evalulation
+
+```{r}
+mean_updates <- data %>%
+  group_by(broad_claim_type, consensus) %>%
+  summarise(mean_update = mean(update),
+            se_update = sd(update) / sqrt(n()))
+
+colour_scale <- c("purple", "darkblue", "red")
+
+mean_updates %>% 
+  ggplot(aes(x = broad_claim_type, y = mean_update, fill = consensus)) + 
+  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
+  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
+                position = position_dodge(.9), width = 0.2) +
+  geom_jitter(data = data, aes(x = broad_claim_type, y = update, colour = consensus, group = consensus), 
+              position = position_jitterdodge(dodge.width = .9, jitter.width = .2), alpha = 0.1) +
+  ylim(-30, 69) +
+  labs(title = "",
+       x = "Claim Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_bw()+
+  theme(legend.position = "top") +
+  labs(colour = "Trial Type", fill = "Trial Type")+
+  scale_color_manual(values = colour_scale) +  # Replace with your desired colors
+  scale_fill_manual(values = colour_scale)    # Replace with your desired colors
+
+```
+
+Looking at the plot, though there's a slightly bigger difference between independent and dependent in the knowable category, it's not clear if it is statistically meaningful.
+
+## Modelling
+
+```{r}
+# load output 
+load(here("data/derived/broad_group_output_combined.Rdata"))
+
+```
+
+### Excluding contested condition (independent v dependent)
+
+Only looking at it for this comparison because we found an interaction for with the full claim types for the other one.
+
+#### Model Comparison
+
+```{r}
+model_LOOICs %>%
+  filter(excluded_condition == "contested") %>%
+  mutate(model_rank = rank(all_looic))
+```
+
+Model that does not include an interaction still the best according to LOOIC.
+
+#### Estimates
+
+```{r}
+load(here("analyses/02_output/broad-group-prior-consensusXclaim-rm-contested.Rdata"))
+
+getCredibleInt <- function(output, probs = c(0.055, 0.945), decimals = 3){ # default is 89% credible interval 
+  posterior_sample <- as_draws_df(output)
+  # only include fixed effects
+  posterior_sample <- posterior_sample %>%
+    select(starts_with("b_"))
+  interval <- t(round(apply(posterior_sample, 2, function(x) quantile(x, probs = probs)),3))
+  colnames(interval) = c("Lower-CI", "Upper-CI")
+  interval
+}
+
+
+getParamDetails <- function(output){
+  intervals_89 <- getCredibleInt(output)
+  sum_output <- summary(output)
+  details <- cbind(round(sum_output$fixed[,"Estimate"],3), intervals_89)
+  colnames(details) <- c("Estimate", "Lower", "Upper")
+  details
+}
+
+getParamDetails(output)
+
+```
+
+Large proportion of the posterior distribution of the interaction overlapping with zero. Reasonable to conclude that there is no claim type X consensus interaction for independent vs. dependent, even when using the two broad claim types.
+
+# Source Type as a Predictor?
+
+In our experiment, primary sources could either be a university or news organisation. These were reasonably balanced across the experiment such that there was an even amount of trials with each source type within each claim type. We mentioned in our pre-registration that we would look to see if there was any effect of source type, but we did not specify what analyses we would do, nor any specific predictions as it was not a central focus of the study.
+
+## Qualitative Evaluation
+
+```{r}
+mean_updates <- data  %>%
+  group_by(source, consensus) %>%
+  summarise(mean_update = mean(update),
+            se_update = sd(update) / sqrt(n()),
+                        n_obs = n()
+
+  )
+
+mean_updates_w_claim_type <- data %>%
+  group_by(source, consensus, claim_type) %>%
+  summarise(mean_update = mean(update),
+            se_update = sd(update) / sqrt(n()),
+            n_obs = n()
+  )
+```
+
+```{r}
+colour_scale <- c("purple", "darkblue", "red")
+
+mean_updates %>% 
+  ggplot(aes(x = source, y = mean_update, fill = consensus)) + 
+  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
+  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
+                position = position_dodge(.9), width = 0.2) +
+  geom_jitter(data = data, aes(source, y = update, colour = consensus, group = consensus), 
+              position = position_jitterdodge(dodge.width = .9, jitter.width = .2), alpha = 0.1) +
+  ylim(-30, 69) +
+  labs(title = "",
+       x = "Source Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_bw()+
+  theme(legend.position = "top") +
+  labs(colour = "Trial Type", fill = "Trial Type")+
+  scale_color_manual(values = colour_scale) + 
+  scale_fill_manual(values = colour_scale)   
+```
+
+It looks like the effect of independence only appeared when the primary source was a university. When it was a news outlet, there did not appear to be any difference between independent and dependent sources at the group level. The standard consensus effect (contested v independent) did not appear to be influenced by source type.
+
+### Update as a function of claim type *and* source type
+
+```{r}
+# Create a new ggplot with facet_wrap
+mean_updates %>% 
+  ggplot(aes(x = source, y = mean_update, fill = consensus)) + 
+  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
+  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
+                position = position_dodge(.9), width = 0.2) +
+  geom_jitter(data = data, aes(source, y = update, colour = consensus, group = consensus), 
+              position = position_jitterdodge(dodge.width = .9, jitter.width = .2), alpha = 0.1) +
+  facet_wrap(~claim_type)+
+  ylim(-30, 69) +
+  labs(title = "",
+       x = "Claim Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_bw()+
+  theme(legend.position = "top") +
+  labs(colour = "Trial Type", fill = "Trial Type")+
+  scale_color_manual(values = colour_scale) + 
+  scale_fill_manual(values = colour_scale)    
+```
+
+Across all claim types, it seems that the effect of source independence only occurred when the source was a university.
+
+## Modelling
+
+Are the qualitative patterns supported statistically?
+
+### Independent vs. contested
+
+#### Model Comparison
+
+```{r}
+# load output 
+load(here("data/derived/group_output_combined.Rdata"))
+
+model_LOOICs %>%
+  filter(model != "group-prior-consensusXclaim-certainty", excluded_condition == "dependent") %>%
+  select(-is_follow_up, -excluded_condition) %>%
+    mutate(model_rank = rank(all_looic),
+         all_looic = round(all_looic),
+         all_se = round(all_se))
+```
+
+The model that includes an added three way interaction of source type is not better than the two-way interaction model, suggesting that there is no statistically credible three-way interaction here. There coefficient estimates could still reveal an effect, though.
+
+#### Estimates
+
+```{r}
+load(here("analyses/02_output/group-prior-consensusXclaimXsource-rm-dependent.Rdata"))
+
+getCredibleInt <- function(output, probs = c(0.055, 0.945), decimals = 3){ # default is 89% credible interval 
+  posterior_sample <- as_draws_df(output)
+  # only include fixed effects
+  posterior_sample <- posterior_sample %>%
+    select(starts_with("b_"))
+  interval <- t(round(apply(posterior_sample, 2, function(x) quantile(x, probs = probs)),3))
+  colnames(interval) = c("Lower-CI", "Upper-CI")
+  interval
+}
+
+
+getParamDetails <- function(output){
+  intervals_89 <- getCredibleInt(output)
+  sum_output <- summary(output)
+  details <- cbind(round(sum_output$fixed[,"Estimate"],3), intervals_89)
+  colnames(details) <- c("Estimate", "Lower", "Upper")
+  details
+}
+
+getParamDetails(output)
+
+```
+
+The estimates reveal a few things. They suggest that for this comparison, there was no statistically credible difference in beliefs for universities versus, as evidenced by a small coefficient with a large proportion of the distribution overlapping with zero. Similarly, there did not appear to be a two way interaction between source type and consensus, not was there credible evidence for a three way interaction, as suggested by the model comparison.
+
+### Independent vs. dependent
+
+The plots shown above seemed to suggest the effect of consensus independence only occurred when the source was a university. Let's see whether the models supported this.
+
+```{r}
+model_LOOICs %>%
+  filter(model != "group-prior-consensusXclaim-certainty", excluded_condition == "contested") %>%
+  select(-is_follow_up, -excluded_condition) %>%
+    mutate(model_rank = rank(all_looic),
+         all_looic = round(all_looic),
+         all_se = round(all_se))
+```
+
+The model comparison supported a three way interaction between consensus independence, claim type, and source.
+
+```{r}
+load(here("analyses/02_output/group-prior-consensusXclaimXsource-rm-contested.Rdata"))
+getParamDetails(output)
+
+```
+
+The coefficients revealed that it was the two way source X independence interaction that was driving the model's performance, as the credible intervals of the three way interaction were failry uncertain (had a reasonably high overlap with zero), whereas those for the two-way interaction were reasonably credible These results suggest that the effect of source independence only emerged for university sources and not news organisations at the group level.
+
+# Prior *certainty* as well as prior belief
+
+It is possible that our claim type results could be driven by the fact that people's prior beliefs weren't as strong for certain kinds of claims, which therefore made them more likely to change their beliefs. For example, people are likely to have stronger prior beliefs about things that are about facts, which they could have heard before, or personal preferences compared to things like eyewitness claims that they have never seen themselves. To test this, we ran another model that, in addition to all of the other predictors, looked at people's prior certainty. As done in @orticio_social_2022, we operationalized certainty as the absolute value of participants' prior belief minus the scale midpoint (50), such that a belief was less certain if it was closer to the mid point. This analysis was not pre-registered.
+
+## Independent vs. contested
+
+```{r}
+
+model_LOOICs %>%
+  filter(model != "group-prior-consensusXclaimXsource", excluded_condition == "dependent") %>%
+  select(-is_follow_up, -excluded_condition) %>%
+    mutate(model_rank = rank(all_looic),
+         all_looic = round(all_looic),
+         all_se = round(all_se))
+
+```
+
+For the standard consensus comparison, a model that included certainty was equally as good (according to the balance of fit and parsimony defined by LOOIC) compared to the model that did not.
+
+```{r}
+load(here("analyses/02_output/group-prior-consensusXclaim-certainty-rm-dependent.Rdata"))
+getParamDetails(output)
+```
+
+All of the main effects and interactions that were credible in the best performing model that excluded certainty were still credible when we included certainty. Notably though, the 89% CI for certainty overlapped with zero and was quite small relative to the un-transformed prior beliefs, suggesting that the consensus X claim type interaction cannot only be explained by people having weaker priors for certain claims.
+
+## Independent vs. Dependent
+
+```{r}
+model_LOOICs %>%
+  filter(model != "group-prior-consensusXclaimXsource", excluded_condition == "contested") %>%
+  select(-is_follow_up, -excluded_condition) %>%
+    mutate(model_rank = rank(all_looic),
+         all_looic = round(all_looic),
+         all_se = round(all_se))
+```
+
+## 
+
+The model performs better according to LOOIC when we consider prior certainty in addition to the other factors. However, to what extent does this reduce the credibility of the other main effects that were 89% credible in the next best performing model?
+
+```{r}
+load(here("analyses/02_output/group-prior-consensusXclaim-certainty-rm-contested.Rdata"))
+getParamDetails(output)
+```
+
+Even though the model that included certainty and an interaction did best, the main effects of claim type are still credible, suggesting the effects of claim type on beliefs is not just because they vary in how certain people are about them. Controlling for certainty also did not make the claim type X consensus independence interaction more credible. However, it is worth noting that as prior certainty decreases, participants were more likely to be persuaded by the consensus.
+
+# References
