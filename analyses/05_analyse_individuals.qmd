@@ -1,23 +1,28 @@
 ---
 title: "Individual Level Analyses"
-author: "Manikya Alister"
+author: Anonymised
 format: 
-  html:
-    code-fold: true
-    code-summary: "Show the code"
+  pdf: 
+    execute:
+      echo: false
+      warning: false
+  # html:
+  #   code-fold: true
+  #   code-summary: "Show the code"
 editor: visual
-#bibliography: references.bib
+toc: true
+number-sections: true
+bibliography: references.bib
 ---
 
 ```{r}
 #| include = FALSE
+
+rm(list = ls())
 library(here)
 library(tidyverse)
-<<<<<<< HEAD
 library(ggpubr)
 library(RColorBrewer)
-=======
->>>>>>> de0e661 (by session models)
 ```
 
 ```{r}
@@ -27,185 +32,243 @@ data <- all_data[[1]] %>%
     mutate(update = post_adjusted - pre_adjusted) 
 ```
 
-<<<<<<< HEAD
-# How many have a preference for diverse sources versus repeated sources, and how many aren't sensitive at all?
-=======
-# How many have a preference for diverse sources versus repeated sources, and how many aren't sensitive at all? 
->>>>>>> de0e661 (by session models)
+# Raw Data
 
 ```{r}
+deltasPlot = function(remove_condition, title, xlab){
+  
+d_consensus <- data %>% 
+  filter(consensus != remove_condition) 
 
-# re order subjects based on their consensus estimate
-tmp <- model_comparison %>%
-  filter(excluded_condition == "contested") 
+comparisons <- unique(d_consensus$consensus)
 
-ordered_subjects <- reorder(as.character(tmp$subject), tmp$consensus_estimate)
-
-model_comparison_ind <- model_comparison %>%
-  filter(excluded_condition == "contested") 
-
-<<<<<<< HEAD
-ind_param_plot <- model_comparison_ind %>%
-  ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
-  geom_point(aes(shape = best_model), size =3) +
-  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
-  labs(title = "Independent Consensus v Dependent Consensus",
-       x = "Participant (Ordered by independence parameter, > 0 = more belief in independence, < 0 = more belief in dependence)",
-=======
-model_comparison_ind %>%
-  ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
-  geom_point(aes(shape = best_model)) +
-  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
-  labs(title = "Preference for independence v dependence v no sensitivity",
-       x = "Subject (ordered by independence parameter)",
->>>>>>> de0e661 (by session models)
-       y = "Independence Parameter") +
-  geom_hline(yintercept = 0, colour = "black")+
-  theme_bw() +
-    theme(axis.text.x = element_blank(),
-<<<<<<< HEAD
-          axis.ticks.x = element_blank(),
-          legend.position = "bottom") 
-
-ind_param_plot
-=======
-<<<<<<<< HEAD:analyses/analyse_individuals.qmd
-          axis.ticks.x = element_blank()) 
-========
-          axis.ticks.x = element_blank(),
-          legend.position = "bottom") 
->>>>>>> de0e661 (by session models)
-```
-
-```{r}
-n_independent <- sum(model_comparison_ind$best_model == "Alternative Model" & model_comparison_ind$consensus_estimate > 0)
-n_dependent <- sum(model_comparison_ind$best_model == "Alternative Model" & model_comparison_ind$consensus_estimate < 0)
-
-
-prop_independent <- round((n_independent/nrow(model_comparison_ind)),2)*100
-prop_dependent <- round((n_dependent/nrow(model_comparison_ind)),2)*100
-
-<<<<<<< HEAD
-prop_independent
-prop_dependent 
-
-prop_alt <- round(sum(model_comparison_ind$best_model == "Alternative Model")/nrow(model_comparison_ind),2)*100
-
-prop_alt 
-
-
-estimates_ind <-model_comparison_ind[model_comparison_ind[,"best_model"] == "Alternative Model" & model_comparison_ind[,"consensus_estimate"] > 0, "consensus_estimate"]
-
-median(as.vector(as.matrix(estimates_ind)))
-
-estimates_dep <-model_comparison_ind[model_comparison_ind[,"best_model"] == "Alternative Model" & model_comparison_ind[,"consensus_estimate"] < 0, "consensus_estimate"]
- 
-median(as.vector(as.matrix(estimates_dep)))
-
-```
-
-```{r}
-# re order subjects based on their consensus estimate
-tmp <- model_comparison %>%
-  filter(excluded_condition == "contested") 
-
-ordered_subjects_facet <- rep(ordered_subjects, each = 2)
-
-model_comparison %>%
-  mutate(excluded_condition = case_when(
-      excluded_condition == "dependent" ~ "Contested v Independent",
-    excluded_condition == "contested" ~ "Independent v Dependent"
-  )) %>%
-  ggplot(aes(x = ordered_subjects_facet, y = consensus_estimate, colour = best_model)) +
-  geom_point(aes(shape = best_model)) +
-  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
-  facet_grid(~excluded_condition)+
-  labs(title = "Individual Sensitivity to Consensus Effects",
-       x = "Participant (Ordered by independence parameter, higher = more belief in indeoendence)",
-       y = "Independence Parameter") +
-  geom_hline(yintercept = 0, colour = "black")+
-  theme_bw() +
-    theme(axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
-          legend.position = "bottom") 
-=======
-
-prop_alt <- round(sum(model_comparison_ind$best_model == "Alternative Model")/nrow(model_comparison_ind),2)*100
->>>>>>>> de0e661 (by session models):analyses/05_analyse_individuals.qmd
->>>>>>> de0e661 (by session models)
-```
-
-`r prop_alt`% of participants were sensitive to independence when reasoning. `r prop_dependent`% of participants were more convinced by a dependent consensus where four different people each shared the same source. `r prop_independent` % of participants were more convinced by an independent consensus where four people shared four different sources.
-
-## Deltas and actual data
-
-```{r}
-deltas_independence <- data %>% 
-  filter(consensus != "contested") %>%
+  deltas_consensus <- d_consensus %>%
   pivot_wider(names_from = consensus, values_from = update) %>%
   group_by(participant) %>%
-  summarise(delta = mean(independent, na.rm = TRUE)-mean(dependent, na.rm = TRUE))
+  summarise(delta = mean(independent, na.rm = TRUE)-mean(get(comparisons[comparisons != "independent"]), na.rm = TRUE))
+
+means_consensus <- data %>%
+    filter(consensus != remove_condition) %>%
+  group_by(participant, consensus) %>%
+  summarise(update = mean(update))
+  
 
 # Assuming deltas_independence and d_independence are your data frames
 
 # Get the participant index ordered by delta
-delta_order <- order(deltas_independence$delta)
-ordered_participants <- deltas_independence$participant[delta_order]
-
-
+delta_order <- order(deltas_consensus$delta)
+ordered_participants <- deltas_consensus$participant[delta_order]
 
 # Make participant a factor which corresponds to the delta order
-d_independence <- data %>%
-  filter(consensus != "contested") %>%
+d_comparison <- data %>%
+  filter(consensus != remove_condition) %>%
   mutate(
     participant = factor(participant, levels = ordered_participants)
   ) %>%
   arrange(participant)
 
 # Create the plot
-deltas_independence %>%
+deltas_consensus %>%
   ggplot(aes(x = factor(participant, levels = ordered_participants), y = delta)) +
-    geom_col(fill = "black")+
-<<<<<<< HEAD
-  geom_point(data = d_independence, aes(y = update, colour = consensus), alpha = 0.5) +
+    geom_col(fill = "grey40", colour = "grey")+
+  geom_point(data = means_consensus, aes(y = update, fill = consensus), alpha = .8, pch = 21) +
+  scale_fill_viridis_d()+
+  theme_bw()+
       theme(axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
-          legend.position = "bottom") 
-=======
-  geom_point(data = d_independence, aes(y = update, colour = consensus), alpha = 0.5) 
->>>>>>> de0e661 (by session models)
+          legend.position = "bottom",
+          axis.title=element_text(size=8.5),
+          plot.title = element_text(size = 9)
+          ) +
+  labs(title = title,
+       x = xlab,
+       y = "Belief difference (points = raw belief)")
+}
 
-  
 ```
-
-<<<<<<< HEAD
-=======
-<<<<<<<< HEAD:analyses/analyse_individuals.qmd
-# How many people aren't sensitive to a consensus at all, regardless of independence? 
-========
->>>>>>> de0e661 (by session models)
-### Correlation between deltas in time one compared to time 2.
 
 ```{r}
-deltas_ind_by_session <- data %>% 
-  filter(consensus != "contested") %>%
-  pivot_wider(names_from = consensus, values_from = update) %>%
-  group_by(participant, session_number) %>%
-  summarise(delta = median(independent, na.rm = TRUE)-median(dependent, na.rm = TRUE)) %>%
-  pivot_wider(names_from = session_number, values_from = delta) 
 
-model_comparison_ind$delta_s1 <- deltas_ind_by_session$`1`
-model_comparison_ind$delta_s2 <- deltas_ind_by_session$`2`
+title = "Independent Consensus vs. No Consensus (Independent Contested)"
+xlab = "Participant (ordered by independent - contested)"
 
-alt_subs <- model_comparison_ind %>%
-  filter(best_model == "Alternative Model")
+deltas_consensus <- deltasPlot(remove_condition = "dependent", title, xlab)
+deltas_consensus
+```
 
-plot(alt_subs$delta_s1, alt_subs$delta_s2)
-cor(alt_subs$delta_s1, alt_subs$delta_s2)
+```{r}
+
+title = "Independent Consensus vs. No Dependent Consensus"
+xlab = "Participant (ordered by independent - dependent)"
+
+deltas_ind <- deltasPlot(remove_condition = "contested", title, xlab)
+deltas_ind
+```
+
+```{r}
+combined_deltas <- ggarrange(deltas_consensus, deltas_ind, nrow = 2)
+ggsave(filename = here("analyses/07_Plots/combined-deltas.png"), width = 10, height = 5, plot = combined_deltas)
 
 ```
 
-<<<<<<< HEAD
+# Modelling
+
+```{r}
+paramPlot = function(remove_condition, title, xlab, ylab){
+  # re order subjects based on their consensus estimate
+tmp <- model_comparison %>%
+  filter(excluded_condition == remove_condition) 
+
+ordered_subjects <- reorder(as.character(tmp$subject), tmp$consensus_estimate)
+
+model_comparison_consensus <- model_comparison %>%
+  filter(excluded_condition == remove_condition)  %>%
+  rename("Best Model" = best_model)
+
+  param_plot <- model_comparison_consensus %>%
+    ggplot(aes(x = ordered_subjects, y = consensus_estimate)) +
+        geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI, colour = `Best Model`), width = 0.2) +
+    geom_point(aes(shape = `Best Model`, fill = `Best Model`), size = 2, stroke = .5) +  # Removed fill, using shape only
+    labs(title = title,
+         x = xlab,
+         y = ylab) +
+    geom_hline(yintercept = 0, colour = "black") +
+    theme_bw() +
+    scale_shape_manual(values = c(24, 21)) + 
+    scale_fill_manual(values = c("darkgreen", "skyblue"))+
+    scale_colour_manual(values = c("darkgreen", "skyblue"))+
+    theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = "bottom")
+#ggsave(plot = ind_param_plot, filename = "07_Plots/indv-param-independence.png", width = 10, height = 5)
+
+param_plot
+}
+```
+
+## How many people were sensitive to consensus
+
+```{r}
+
+title = "Independent Consensus vs. No Consensus (Independent Contested)"
+xlab = "Participant (Ordered by consensus parameter, higher = more belief in consensus)"
+ylab = "Consensus Parameter"
+ind_param_plot <- paramPlot(remove_condition = "dependent", title, xlab, ylab)
+ind_param_plot
+```
+
+```{r}
+title = "Independent Consensus vs. Dependent Consensus"
+xlab = "Participant (Ordered by independence parameter, > 0 = more belief in independence, < 0 = more belief in dependence)"
+ylab = "Independence Parameter"
+cons_param_plot <- paramPlot(remove_condition = "contested", title, xlab, ylab)
+cons_param_plot
+```
+
+## How many have a preference for independent sources versus dependent sources, and how many aren't sensitive at all?
+
+```{r}
+combined_param_plots <- ggarrange(cons_param_plot, ind_param_plot, common.legend = TRUE, ncol = 1, nrow = 2)
+ggsave(plot = combined_param_plots, filename = here("analyses/07_Plots/combined-param-plot.png"), width = 10, height = 4)
+```
+
+```{r}
+model_comparison_ind <- model_comparison %>%
+  filter(excluded_condition == "contested")  
+
+n_independent <- sum(model_comparison_ind$best_model == "Alternative Model" & model_comparison_ind$consensus_estimate > 0)
+n_dependent <- sum(model_comparison_ind$best_model == "Alternative Model" & model_comparison_ind$consensus_estimate < 0)
+
+prop_alt <- round(sum(model_comparison_ind$best_model == "Alternative Model")/nrow(model_comparison_ind),2)*100
+
+paste0("total proportion of participants best fit by the alernative model: ", prop_alt)
+
+prop_independent <- round((n_independent/nrow(model_comparison_ind)),2)*100
+prop_dependent <- round((n_dependent/nrow(model_comparison_ind)),2)*100
+
+paste0("proportion of participants who preferred an independent consensus: ", prop_independent)
+paste0("proportion of participants who preferred an dependent consensus: ", prop_dependent) 
+
+
+estimates_ind <- model_comparison_ind[model_comparison_ind[,"best_model"] == "Alternative Model" & model_comparison_ind[,"consensus_estimate"] > 0, "consensus_estimate"]
+
+paste0("Median estimate for participants who preferred an independent consensus: ", median(as.vector(as.matrix(estimates_ind))))
+
+estimates_dep <-model_comparison_ind[model_comparison_ind[,"best_model"] == "Alternative Model" & model_comparison_ind[,"consensus_estimate"] < 0, "consensus_estimate"]
+ 
+paste0("Median estimate for participants who preferred an dependent consensus: ",median(as.vector(as.matrix(estimates_dep))))
+
+```
+
+```{r}
+#| include: false
+# just checking to see whether the orders match across comparisons
+# re order subjects based on their consensus estimate
+# tmp <- model_comparison %>%
+#   filter(excluded_condition == "contested") 
+# 
+# ordered_subjects_facet <- rep(ordered_subjects, each = 2)
+# 
+# model_comparison %>%
+#   mutate(excluded_condition = case_when(
+#       excluded_condition == "dependent" ~ "Contested v Independent",
+#     excluded_condition == "contested" ~ "Independent v Dependent"
+#   )) %>%
+#   ggplot(aes(x = ordered_subjects_facet, y = consensus_estimate, colour = best_model)) +
+#   geom_point(aes(shape = best_model)) +
+#   geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
+#   facet_grid(~excluded_condition)+
+#   labs(title = "Individual Sensitivity to Consensus Effects",
+#        x = "Participant (Ordered by independence parameter, higher = more belief in indeoendence)",
+#        y = "Independence Parameter") +
+#   geom_hline(yintercept = 0, colour = "black")+
+#   theme_bw() +
+#     theme(axis.text.x = element_blank(),
+#           axis.ticks.x = element_blank(),
+#           legend.position = "bottom") 
+```
+
+`r prop_alt`% of participants were sensitive to independence when reasoning. `r prop_dependent`% of participants were more convinced by a dependent consensus where four different people each shared the same source. `r prop_independent` % of participants were more convinced by an independent consensus where four people shared four different sources.
+
+# Correlation between sessions for independence comparison
+
+It is useful to know whether people who were labeled as preferring an independent v dependent
+consensus appeared to show consistent behavior across sessions.
+
+```{r}
+# deltas_ind_by_session <- data %>% 
+#   filter(consensus != "contested") %>%
+#   pivot_wider(names_from = consensus, values_from = update) %>%
+#   group_by(participant, session_number) %>%
+#   summarise(delta = median(independent, na.rm = TRUE)-median(dependent, na.rm = TRUE)) %>%
+#   pivot_wider(names_from = session_number, values_from = delta) 
+# 
+# model_comparison_ind$delta_s1 <- deltas_ind_by_session$`1`
+# model_comparison_ind$delta_s2 <- deltas_ind_by_session$`2`
+# 
+# alt_subs <- model_comparison_ind %>%
+#   filter(best_model == "Alternative Model")
+# 
+# plot(alt_subs$delta_s1, alt_subs$delta_s2)
+# cor(alt_subs$delta_s1, alt_subs$delta_s2)
+
+```
+
+```{r}
+# deltas_ind_by_session <- data %>% 
+#   filter(consensus != "contested") %>%
+#   pivot_wider(names_from = consensus, values_from = update) %>%
+#   group_by(participant, session_number) %>%
+#   summarise(delta = median(independent, na.rm = TRUE)-median(dependent, na.rm = TRUE)) %>%
+#   pivot_wider(names_from = session_number, values_from = delta) 
+# 
+# alt_subs <- model_comparison_ind %>%
+#   filter(best_model == "Alternative Model")
+# 
+# plot(alt_subs$delta_s1, alt_subs$delta_s2)
+# cor(alt_subs$delta_s1, alt_subs$delta_s2)
+```
+
 ```{r}
 load(here("data/derived/model_comparison_by_session.Rdata"))
 
@@ -219,7 +282,7 @@ session_estimates$best_model_overall <- model_comparison_ind$best_model
 
 # Assuming your data frame is named session_estimates
 session_estimates %>%
-  ggplot(aes(x = consensus_estimate_1, y = consensus_estimate_2, color = best_model_overall)) + 
+  ggplot(aes(x = consensus_estimate_1, y = consensus_estimate_2, color = best_model_overall)) +
   geom_smooth(method = "lm", se = FALSE) + 
   geom_point() +
   #xlim(-20,30)+
@@ -238,7 +301,16 @@ cor_alt
 
 ```
 
-Andy is also interested to know what the correlation looks like when we include participants who were labelled as being best fit by the alternative model in *either* session 1 or session 2, as well as overall.
+				
+
+The correlation appears to suggest reasonably consistent individual differences. Among partic-
+ipants who were labelled as not being best fit by the null model, there was a strong correlation
+between session 1 and session 2 ( 0.56 ). We would not expect there to be any correlation for
+participants best fit by the null mode, which there did not appear to be.				
+
+It may also be interesting to know what the correlation looks like when we include participants
+who were labelled as being best fit by the alternative model in either session 1 or session 2, as
+well as overall.
 
 ```{r}
 # find participants who were best fit by the alternative model in at least one session
@@ -265,78 +337,19 @@ cor(session_estimates_at_least_one$consensus_estimate_1, session_estimates_at_le
 
 ```
 
-The correlation is way smaller, but I'm not convinced that this is particularly informative as to the overall quality of our analysis/consistency of the results. If participants were labelled as being best described by the alternative model in only 1 session but not overall, this actually means that our analysis is doing a good job only classifying people who are consistently showing a particular behavior across the two sessions. It does tell us that having half the number of trials makes the analysis misleading because it can identify people as being best fit by the alternative model even when their results aren't consistent across sessions, which further justifies our sample size, but I do not think the low correlation means we need to add any kind of caveat about our results being inconsistent from session 1 to session 2.
+						
 
-```{r}
-d_consensus_estimate <- model_comparison_by_session %>% 
-  pivot_wider(names_from = session_number, values_from = c(consensus_estimate, lower_CI, upper_CI), id_cols = subject) %>%
-  relocate(lower_CI_2, .after = upper_CI_1)
-
-d_consensus_estimate = bind_cols(d_consensus_estimate, model_comparison_ind[,3:5])
-
-save(d_consensus_estimate, file = here("data/derived/d_consensus_estimate.Rdata"))
-```
-
-# How many people aren't sensitive to a consensus at all, regardless of independence?
-
-```{r}
-
-cons_param_plot <- model_comparison %>%
-  filter(excluded_condition == "dependent") %>%
-  rename("Best Model" = best_model)  %>%
-  ggplot(aes(x = reorder(as.character(subject), consensus_estimate), y = consensus_estimate, colour = `Best Model`)) +
-  #ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
-  geom_point(aes(shape = `Best Model`), size = 3) +
-  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
-  labs(title = "Independent Consensus v Independent Contested (No Consensus)",
-       x = "Participant (Ordered by consensus parameter, higher = more belief in consensus)",
-       y = "Consensus Parameter") +
-  ylim(-10, 58)+
-  geom_hline(yintercept = 0, colour = "black")+
-  theme_bw() +
-    theme(axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
-          legend.position = "bottom") 
-cons_param_plot
-```
-
-```{r}
-model_comparison %>%
-  group_by(excluded_condition) %>%
-  summarise(median = median(consensus_estimate))
-```
-
-```{r}
-combined_param_plots <- ggarrange(cons_param_plot, ind_param_plot, common.legend = TRUE, ncol = 1, nrow = 2)
-combined_param_plots
-ggsave(plot = combined_param_plots, filename = here("analyses/07_Plots/combined-param-plot.png"), width = 10, height = 4)
-```
+The correlation is much smaller, but II don\'t think this is particularly informative as to the
+overall quality of our analysis/consistency of the results. If participants were labelled as being
+best described by the alternative model in only 1 session but not overall, this actually means
+that our analysis is doing a good job only classifying people who are consistently showing a
+particular behavior across the two sessions. It does tell us that having half the number of trials
+makes the analysis misleading because it can identify people as being best fit by the alternative
+model even when their results aren\'t consistent across sessions, which further justifies our
+sample size, but I do not think the low correlation suggests are results are inconsistent from
+session 1 to session 2.
 
 # What strategy did people *say* they used?
-=======
-# How many people aren't sensitive to a consensus at all, regardless of independence?
->>>>>>>> de0e661 (by session models):analyses/05_analyse_individuals.qmd
-
-```{r}
-
-model_comparison %>%
-  filter(excluded_condition == "dependent") %>%
-  ggplot(aes(x = reorder(as.character(subject), consensus_estimate), y = consensus_estimate, colour = best_model)) +
-  #ggplot(aes(x = ordered_subjects, y = consensus_estimate, colour = best_model)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = lower_CI, ymax = upper_CI), width = 0.2) +
-  labs(title = "Preference for consensus v no preference (contested v independent)",
-       x = "Subject (ordered by consensus parameter)",
-       y = "Consensus Parameter") +
-  geom_hline(yintercept = 0, colour = "black")+
-  theme_bw() +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()) 
-
-```
-
-# What strategy did people *say* they used?  
->>>>>>> de0e661 (by session models)
 
 Comparing their behavior with their self-reported preference.
 
@@ -346,7 +359,6 @@ self_report <- as.data.frame(all_data[[4]])
 
 # get just the multiple choice anser
 self_report_mc <- self_report$self_report_strategy
-<<<<<<< HEAD
 #self_report$subject <- 1:length(self_report[,1])
 self_report$coefficient <- model_comparison_ind$consensus_estimate
 
@@ -366,31 +378,23 @@ insight_barplot <- mc_tally_df %>%
   ggplot(aes(x = Response, y = Count, fill = Response)) +
   geom_col(color = "black", size = .5) +
   theme_bw() +
+  scale_fill_viridis_d()+
   theme(legend.position = "none")  
   #scale_fill_brewer(palette = "Greens")
 
-
-=======
-self_report$subject <- 1:length(self_report[,1])
-mc_tally <- table(self_report_mc)
-barplot(mc_tally)
->>>>>>> de0e661 (by session models)
+insight_barplot
 ```
 
-Most people said they they were more convinced by diverse sources, even though that's not what their behavior showed!
+Most people said they they were more convinced by diverse sources, even though that's not what their behavior showed.
 
 Could it be that our model comparison is just penalizing too harshly? A lot of people show positive independence estimate in the first figure, even though the for most of them the model comparison preferred the null and the credible intervals were overlapping with zero.
 
-<<<<<<< HEAD
 ## Proportion of people who said they preferred diverse sources in the full sample, versus those who had a positive beta indicating a (not necessarily credible) behavioral preference for diversity.
-=======
-## Proportion of people who said they preferred diverse sources in the full sample, versus those who had a positive beta indicating a (not necessarily credible) behavioral preference for diversity. 
->>>>>>> de0e661 (by session models)
 
 ```{r}
 
 # calculate the proportion of self reported "diverse" participants in the full sample 
-prop_diverse_full <- sum(mc_tally["diverse"])/sum(mc_tally)
+prop_diverse_full <- sum(mc_tally["Independent"])/sum(mc_tally)
 
 # find participants who at least had a positive consensus parameter estimate
 pos_consensus <- model_comparison %>%
@@ -398,19 +402,22 @@ pos_consensus <- model_comparison %>%
   mutate(reported_strategy = self_report[self_report$participant == subject,"self_report_strategy"])
 
 # calculate the proportion of self reported "diverse" participants with a positive beta
-<<<<<<< HEAD
 prop_diverse_pos <- sum(pos_consensus$reported_strategy == "diverse", na.rm = TRUE)/length(pos_consensus$reported_strategy)
-=======
-prop_diverse_pos <- sum(pos_consensus$reported_strategy == "diverse")/length(pos_consensus$reported_strategy)
->>>>>>> de0e661 (by session models)
 
 # compare both proportions
 prop_diverse_comparison <- c(`Full Sample` = prop_diverse_full, `Positive Beta` = prop_diverse_pos)
 
-barplot(prop_diverse_comparison, ylim = c(0,1))
+barplot(prop_diverse_comparison)
 ```
 
-<<<<<<< HEAD
+The above plot shows that the proportion of participants who said they preferred an indepen-
+dent consensus was only slightly higher for participants who showed behavior in line with that
+preference (positive beta) than in the full sample. This suggests that a lot of participants who
+said they preferred an independent consensus did not show behavior in line with this stated
+preference.
+
+## Matching self reported preference with 
+
 ```{r}
 model_comparison_ind$self_report <- self_report$self_report_strategy
 
@@ -437,20 +444,21 @@ ind_param_plot_self_report <- model_comparison_ind %>%
   labs(title = "Independent Consensus v Dependent Consensus (Coloured by Self Reported Strategy)",
        x = "Participant (Ordered by independence parameter, > 0 = more belief in independence, < 0 = more belief in dependence)",
        y = "Independence Parameter") +
+  scale_colour_viridis_d()+
   geom_hline(yintercept = 0, colour = "black")+
   theme_bw() +
     theme(axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
           legend.position = "none") 
 
-ind_param_plot_self_report
 
 combined_insight_plots <- ggarrange( insight_barplot, ind_param_plot_self_report,common.legend = FALSE, ncol = 1, nrow = 2)
-
 ggsave(plot = combined_insight_plots, filename = here("analyses/07_Plots/combined-insight-plot.png"), width = 10, height = 6)
+combined_insight_plots
+
 ```
 
-## Participants who weren't sensitive to consensus
+# Participants who weren't sensitive to consensus
 
 ```{r}
 
@@ -467,14 +475,3 @@ model_comparison %>%
 All of the participants who were insensitive to independence, except one, were sensitive to the standard consensus effect.
 
 Two out of the three participants who did not show any standard consensus effect were sensitive to independence, such that they were more convinced by *dependent* (repeated) sources. This makes sense since these participants were relatively less persuaded by an independent consensus, which is what the contested (no consensus) condition was compared with to assess the standard consensus effect. It is probable that if we had assessed consensus by comparing the dependent consensus with the contested condition, these participants would have shown a consensus effect. It is interesting however, that for these participants, their preference for repeated, dependent sources appeared not just when compared to an independent consensus, but also when compared to no consensus at all.
-
-## Initial thoughts
-
-Initial thoughts. Behaviorally, a small number of people preferred either repeated or diverse sources, with more people tending towards diversity. Basically everyone showed a general consensus effect (when comparing contested to independent consensus).
-=======
-## 
-
-Initial thoughts. Behaviorally, a small number of people preferred either repeated or diverse sources, with more people tending towards diversity. Basically everyone showed a general consensus effect (when comparing comtested to independent consensus).
->>>>>>> de0e661 (by session models)
-
-Despite these behavioral results, by far the most common self reported strategy was a preference for diverse sources. A few people said that a consensus was all that they cared about (regardless of independence) and even fewer said that they proffered the same repeated source. This might suggest a lack of insight into what people actually find convincing. It could also suggest our model comparison was too biased towards null results, but an initial investigation suggests that not to be the case.
