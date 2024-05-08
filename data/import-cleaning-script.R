@@ -38,7 +38,7 @@ source_info <- read.csv(here("data/derived/source_data.csv"))
 print(data)
 
 
-RAW_DATA_FILE <- "data/raw/results.json";
+RAW_DATA_FILE <- "data/raw/anon-results.json";
 
 # load data
 d_json <- read_json(here(RAW_DATA_FILE))
@@ -138,7 +138,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
     }
     
     
-    prolific_id <- d_participant[["PROLIFIC_PID"]]
+    prolific_id <- d_participant[["ANON_PID"]]
     
     session_number <- d_participant[["session_number"]]
     print(session_number)
@@ -245,7 +245,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
       }
       }
       demographics = as.data.frame(demographics)
-      demographics$PROLIFIC_PID <- prolific_id
+      demographics$ANON_PID <- prolific_id
       # empty subject number column
       demographics$participant <- NA
       rownames(demographics) <- NULL
@@ -267,20 +267,20 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
              pre_adjusted = ifelse(side_A == "con"  & consensus != "contested", (100-pre), pre))
     # remove unnecessary columns
     data <- data_all %>%
-      select(PROLIFIC_PID, session_number, claim_set, claim, claim_type, broad_claim_type, source, pre, post, pre_adjusted, post_adjusted, consensus, side_A, side_B,
+      select(ANON_PID, session_number, claim_set, claim, claim_type, broad_claim_type, source, pre, post, pre_adjusted, post_adjusted, consensus, side_A, side_B,
              nSources_A, nSources_B, prop_pro, trial_accuracy, total_duration,  stances, tweetOrder)
   all_data <- rbind(all_data, data)
   }
   
   # get all of the unique prolific id's
-  all_prolific_ids <- unique(all_data$PROLIFIC_PID)
+  all_prolific_ids <- unique(all_data$ANON_PID)
   # for each unique participant, filter data into their own data set 
   for (i in 1:length(all_prolific_ids)){
     print(i)
     # get the prolific id
     id <- all_prolific_ids[i]
     # filter data for that participant
-    participant_data <- all_data[all_data$PROLIFIC_PID == id,]
+    participant_data <- all_data[all_data$ANON_PID == id,]
     # get the number of trials for that participant
     n_trials <- nrow(participant_data)
     # get the mean accuracy for that participant
@@ -298,8 +298,8 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
     if (all_complete){
       if (n_trials != 60 | mean_accuracy < .9){
         # remove participants who didn't complete the experiment or whose accuracy was below 90%
-        all_data <- all_data[all_data$PROLIFIC_PID != id,]
-        all_demographics <- all_demographics[all_demographics$PROLIFIC_PID != id,]
+        all_data <- all_data[all_data$ANON_PID != id,]
+        all_demographics <- all_demographics[all_demographics$ANON_PID != id,]
 
         # do not output data for participants who didn't complete the experiment
         next
@@ -311,7 +311,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
     
     # add to data
     participant_data$participant <- participant
-    all_demographics[all_demographics[,"PROLIFIC_PID"] == id, "participant"] <- participant
+    all_demographics[all_demographics[,"ANON_PID"] == id, "participant"] <- participant
 
     # move participant column to front
     participant_data <- participant_data[c("participant", names(participant_data)[-which(names(participant_data) == "participant")])]
@@ -323,14 +323,14 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
   }
 
   if (all_complete){
-    colnames(follow_ups) <- c("PROLIFIC_PID", "self_report_strategy", "free_text")
+    colnames(follow_ups) <- c("ANON_PID", "self_report_strategy", "free_text")
     follow_ups <- as.data.frame(follow_ups)
   }
   # add numeric id column for each participant
-  all_data$participant <- as.numeric(factor(all_data$PROLIFIC_PID, levels = unique(all_data$PROLIFIC_PID)))
+  all_data$participant <- as.numeric(factor(all_data$ANON_PID, levels = unique(all_data$ANON_PID)))
   
   # do the same for  follow up questions, making sure that it matches the behavioural data. 
-  follow_ups$participant <-  as.numeric(factor(follow_ups$PROLIFIC_PID, levels = unique(all_data$PROLIFIC_PID)))
+  follow_ups$participant <-  as.numeric(factor(follow_ups$ANON_PID, levels = unique(all_data$ANON_PID)))
   
   # Reordering the dataframe by 'id' column
   all_data <- all_data[order(all_data$participant), ]
@@ -338,7 +338,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
   
   # Moving the 'id' column to the front
   all_data <- all_data[c("participant", names(all_data)[-which(names(all_data) == "participant")])]
-  follow_ups <- follow_ups[c("participant", names(follow_ups)[-which(names(follow_ups) %in% c("participant", "PROLIFIC_PID"))])]
+  follow_ups <- follow_ups[c("participant", names(follow_ups)[-which(names(follow_ups) %in% c("participant", "ANON_PID"))])]
   
   list(data = all_data, rm_accuracy = rm_accuracy, rm_drop_out = rm_drop_out, follow_up = follow_ups, demographics = all_demographics)
 }
@@ -359,10 +359,10 @@ paste0(rm_accuracy, " participants removed for accuracy < .9")
 rm_drop_out <- length(all_data[[3]])
 paste0(rm_drop_out, " participants removed for failing to complete session 2")
 follow_ups <- all_data[[4]]
-paste0(length(unique(just_data$PROLIFIC_PID)), " participants remain after cleaning.")
+paste0(length(unique(just_data$ANON_PID)), " participants remain after cleaning.")
 
 time <- just_data %>%
-  group_by(PROLIFIC_PID) %>%
+  group_by(ANON_PID) %>%
   summarise(time = median(total_duration))
 
 table(all_data$demographics$demographics_gender)
@@ -376,7 +376,7 @@ demographics <- all_data$demographics
 
 checkParticipant = function(id){
   d <- just_data %>%
-    filter(PROLIFIC_PID == id)
+    filter(ANON_PID == id)
   d
 }
 #check <- checkParticipant("656f042cc31f84842ad587e4")
