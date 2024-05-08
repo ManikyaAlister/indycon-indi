@@ -1,3 +1,5 @@
+# 
+
 rm(list = ls())
 library(here)
 library(tidyverse)
@@ -16,7 +18,7 @@ save(data, file = here("data/experiment-3-2022/data.rdata"))
 
 # Filter data for topic level analysis for Ee Von
 data_topics <- data %>%
-  select(uid, trialType, prior_adjusted, post_adjusted, nSources_A)%>%
+  select(uid, trialType, prior_adjusted, post_adjusted, nSources_A)%>% # "adjusted" refers to the fact that we're adjusting for pro/con trials.
   mutate(update = post_adjusted-prior_adjusted)%>% 
   group_by(trialType, nSources_A) %>%
   summarise(update = median(update)) %>%
