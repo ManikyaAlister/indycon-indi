@@ -30,7 +30,13 @@ library(emmeans)
 load(here("data/derived/model_comparison.Rdata"))
 load(here("data/clean/all_data_clean.Rdata"))
 data <- all_data[[1]] %>%
-    mutate(update = post_adjusted - pre_adjusted) 
+    mutate(update = post_adjusted - pre_adjusted,
+           claim_type = case_when(
+             claim_type == "Knowable Eye witness" ~ "Knowable Eyewitness",
+              TRUE ~ claim_type
+
+            )
+           )
 
 d_independence <- data %>% 
   filter(consensus != "contested")
