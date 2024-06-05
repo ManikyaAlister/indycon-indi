@@ -1,0 +1,250 @@
+---
+title: "Following Up Individual Differences"
+author: Anonymised
+format: 
+  pdf: 
+    execute:
+      echo: false
+      warning: false
+editor: visual
+toc: true
+number-sections: true
+bibliography: references.bib
+---
+
+```{r}
+library(here)
+library(tidyverse)
+load(here("data/derived/model_comparison.Rdata"))
+load(here("data/clean/all_data_clean.Rdata"))
+data <- all_data[[1]] %>%
+    mutate(update = post_adjusted - pre_adjusted) 
+
+d_independence <- data %>%
+  filter(consensus != "contested")
+```
+
+# Was individual variation because of consistent individual differences or because of the claims they saw?
+
+When comparing an independent consensus to a dependent consensus, one of our key findings was that we found three sub-groups of participants: people who were more persuaded by independence, people who were more persuaded by dependence, and people who were not sensitive to either. Because some of these sub groups were quite small, and because claims were allocated to consensus conditions randomly for each participant, it is possible that the individual variation we observed reflected the fact people were exposed to different claims, and that some claims were more or less likely to produce independence effects. In summary, this would suggest the variation we saw was not due to individual differences, but due to people seeing different claims in different conditions.
+
+We think this is unlikely for a few reasons, most notably 1) there did not appear to be systematic differences in independence effects as a function of claim type and 2) the randomization of claims and large number of claims per cell should have ensured that any outlier claims that were particularly conducive to a particular type of consensus effect should have been unlikely to influence results. However, here we report some further follow up analyses.
+
+## Proportion of responses by a participant in a particular consensus trial that were above their median belief update.
+
+One way that we can assess whether individual variation was due to stable individual differences is by assessing, for participants labelled by the model as preferring a particular type of consensus, what proportion of their trials in the consensus type they were labelled as preferring scored above their medium belief update.
+
+```{r}
+# Calculate the proportion of scores above each participant's median where consensus == "dependent"
+proportion_above_median_4 <- data %>%
+  filter(consensus != "contested") %>%
+  group_by(participant) %>%
+  summarise(
+    prop_above_median = sum(update > median(update) & consensus == "independent")/sum(consensus == "independent"),
+    n_above_median = sum(update > median(update) & consensus == "independent")
+  ) %>%
+  mutate(consensus = "independent trials")
+
+proportion_above_median_1 <- data %>%
+  filter(consensus != "contested") %>%
+  group_by(participant) %>%
+  summarise(
+    prop_above_median = sum(update > median(update) & consensus == "dependent")/sum(consensus == "dependent"),
+    n_above_median = sum(update > median(update) & consensus == "dependent")
+  ) %>%
+  mutate(consensus = "dependent trials")
+
+#sum(proportion_above_median_4$n_above_median > 12)
+#sum(proportion_above_median_1$n_above_median > 12)
+
+prop_threshold = .5
+paste0("n with more than ",prop_threshold*100,"% of their independent trials greater than the overall median:" )
+sum(proportion_above_median_4$prop_above_median > prop_threshold)
+
+paste0("n with more than ",prop_threshold*100,"% of their dependent trials greater than the overall median:" )
+sum(proportion_above_median_1$prop_above_median > prop_threshold)
+
+proportion_above_median <- rbind(proportion_above_median_1, proportion_above_median_4)
+
+tmp <- model_comparison %>%
+  filter(excluded_condition == "contested") %>%
+  rename("participant" = subject)
+
+proportion_above_median  <- full_join(proportion_above_median, tmp)
+
+order <- proportion_above_median$participant[reorder(proportion_above_median$participant,proportion_above_median$consensus_estimate)]
+
+# plot
+proportion_above_median %>%
+  ggplot(aes(x = order, y = prop_above_median, fill = best_model))+
+  geom_col()+
+  scale_fill_manual(values = c("darkgreen", "skyblue"))+
+  geom_hline(yintercept = .5)+
+  facet_grid(~consensus, scales = "free_y") +
+  labs(y = "Proportion above median", title = str_wrap("Proportion of trials of each consensus type with a belief update above the overall median belief update"))
+  #coord_cartesian(ylim = c(3, 6))
+```
+
+The above plot shows that the majority of participants labelled as preferring either dependence (green, left side) and independence (green, right side) showed this preference reasonably consistently, with the majority of their trials reflecting a preference for one type of consensus over another. This suggests these preference are not just driven by a few outlier trials with a large belief update due to, for example, a particular claim being especially conducive to a consensus independence effect.
+
+## Ranking responses for each participant by trial type
+
+```{r}
+deltas_independence <- data %>% 
+  filter(consensus != "contested") %>%
+  pivot_wider(names_from = consensus, values_from = update) %>%
+  group_by(participant) %>%
+  summarise(delta = mean(independent, na.rm = TRUE)-mean(dependent, na.rm = TRUE))
+
+# make a rank variable in data 
+d_independence <- d_independence %>%
+  group_by(participant) %>%
+  mutate(rank = rank(-update),
+         rank_score = max(rank)-rank) %>%
+  ungroup()
+
+test <- d_independence %>%
+  select(participant,update,rank, rank_score, consensus, claim, claim_type
+         ) #%>%
+  #filter(participant == 22)
+
+participant_median = data %>%
+  group_by(participant) %>%
+  summarise(median_update = median(update))
+
+# Assuming deltas_independence and d_independence are your data frames
+
+deltas_independence <- full_join(deltas_independence, tmp)
+deltas_independence <- full_join(deltas_independence,participant_median)
+
+
+# Get the participant index ordered by delta
+delta_order <- order(deltas_independence$consensus_estimate)
+ordered_participants <- deltas_independence$participant[delta_order]
+
+
+
+# Make participant a factor which corresponds to the delta order
+d_independence <- d_independence %>%
+  filter(consensus != "contested") %>%
+  mutate(
+    participant = factor(participant, levels = ordered_participants)
+  ) %>%
+  arrange(participant)
+
+
+d_independence %>%
+  ggplot(aes(x = factor(participant, levels = ordered_participants))) +
+  scale_color_viridis_d()+
+  #scale_colour_manual(values = c("purple", "red"))+
+    geom_point(aes(y = rank, colour = consensus), alpha = 0.8, size = 1) +
+  labs(y = "Rank belief update", x = "Participant (ordered by consensus estimate)", title = "Rank belief update for each person seperated by consensus trial type", subtitle = "Lower = better, ties method = average") +
+      theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = "bottom") 
+
+# deltas_independence %>%
+#   ggplot(aes(x = factor(participant, levels = ordered_participants), y = delta)) +
+#     #geom_col(fill = "black")+
+#     scale_colour_manual(values = c("darkgreen", "skyblue"))+
+#   #geom_point(data = d_independence, aes(y = update, colour = consensus), alpha = 0.5, size = 1) +
+#     geom_point(data = d_independence, aes(y = rank_score, colour = consensus), alpha = 0.5, size = 1) +
+#   labs(y = "rank")
+#       #geom_line(aes(y = median(rank_score), group = 1))+
+#       theme(axis.text.x = element_blank(),
+#           axis.ticks.x = element_blank(),
+#           legend.position = "bottom") 
+
+```
+
+The above plot is another way of looking at the proportion of trials favoring an independent vs. dependent consensus for each participant. Looking at this plot, you can see that participants with consensus estimates indicating a preference for dependence (left side of the x axis) and independence (right end of the x axis), tended to have more trials corresponding to their preference with better (lower) ranked belief updates, further suggesting that the model labels indicate a persistent preference for each participant rather than being driven by a few outlier trials that had large belief updates.
+
+## Were claims with strong belief changes in favor of dependence/independence (outlier claims) more common in participants labelled as preferring that kind of consensus?
+
+```{r}
+# data %>%
+#   filter(consensus != "contested") %>%
+#   group_by(claim, consensus) %>%
+#   summarise(update = median(update)) %>%
+#   pivot_wider(names_from = consensus, values_from = update) %>%
+#   mutate(delta = independent - dependent) %>%
+#   ggplot(aes(x = claim, y = delta )) +
+#   geom_col()
+
+# Calculate the standard error
+calculate_se <- function(x) {
+  sd(x) / sqrt(length(x))
+}
+
+claim_data <- data %>%
+  filter(consensus != "contested") %>%
+  group_by(claim, consensus) %>%
+  summarise(
+    update_median = median(update),
+    update_se = calculate_se(update)
+  ) %>%
+  pivot_wider(
+    names_from = consensus,
+    values_from = c(update_median, update_se)
+  ) %>%
+  mutate(
+    delta = update_median_independent - update_median_dependent,
+    delta_se = sqrt(update_se_independent^2 + update_se_dependent^2)
+  ) %>%
+  full_join(unique(data[,c("claim_type","claim")])) 
+
+claim_data %>%
+ggplot(aes(x = claim, y = delta)) +
+  geom_col() +
+  labs(y = "Independent - Dependent")+
+  geom_errorbar(aes(ymin = delta - delta_se, ymax = delta + delta_se), width = 0.2) +
+  labs(subtitle = "Bars = SE")+
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8)
+    )+  # Adjust size as needed 
+  facet_wrap(~claim_type, scales = "free")
+```
+
+```{r}
+m_delta <- mean(claim_data$delta)
+sd_delta <- sd(claim_data$delta)
+
+outlier_sd <- 1.5
+
+criterion_dep <- m_delta - sd_delta*outlier_sd
+criterion_ind <-  m_delta + sd_delta*outlier_sd
+
+claim_data <- claim_data %>%
+  mutate(claim_outlier = case_when(
+    delta < criterion_dep ~ "Dependent Outlier",
+    delta > criterion_ind ~ "Independent Outlier",
+    TRUE ~ "None"
+  ))
+
+print("Outlier cliams: ")
+filter(claim_data, claim_outlier != "None") %>%
+  select(claim)
+```
+
+We define outlier claims as those that, as shown in the plot above, had particularly large belief updates in favor of independent or dependent trials, indicating that those claims might be more conducive to those particular kinds of consensus effects. Specifically, we defined an outlier as a claim where the difference in belief update was plus (independent) or minus (dependent) 1.5 standard deviations from the average difference between independent and dependent trials.
+
+```{r}
+d_outlier <- full_join(d_independence, claim_data)  %>%
+  mutate(is_outlier = case_when(
+    claim_outlier == "Independent Outlier" & consensus == "independent" ~ "independent outlier claim",
+    claim_outlier == "Dependent Outlier" & consensus == "dependent" ~ "dependent outlier claim",
+    TRUE ~ "normal claim"
+  )) 
+
+  d_outlier %>%
+  ggplot(aes(x = factor(participant, levels = ordered_participants))) +
+  scale_color_viridis_d()+
+  #scale_colour_manual(values = c("purple", "red"))+
+    geom_point(aes(y = rank, colour = is_outlier), alpha = 0.8, size = 1) +
+  labs(y = "Rank belief update", x = "Participant (ordered by consensus estimate)", title = str_wrap("Rank belief update for each person seperated by whether they were responding to an outlier claim"), subtitle = "Lower = better, ties method = average") +
+      theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          legend.position = "bottom") 
+```
+
+In the plot above, it looks like the number of outlier claims that each participant saw was pretty consistent, lending further support to the idea that participants were not labelled by the model as preferring a particular type of consensus because they were exposed to more claims that were particularly conducive to that kind of consensus. For participants favoring a dependent consensus (left side) they saw hardly any dependent outlier claims, and for participants favoring a dependent consensus (right), there was a smaller proportion of independent outlier claims in higher ranks compared to those who did not prefer either consensus type (participants in the middle of the plot).
