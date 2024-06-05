@@ -76,13 +76,16 @@ deltas_consensus %>%
   theme_bw()+
       theme(axis.text.x = element_blank(),
           axis.ticks.x = element_blank(),
-          legend.position = "bottom",
-          axis.title=element_text(size=8.5),
-          plot.title = element_text(size = 9)
+          legend.position = "bottom"
+          # axis.title=element_text(size=10),
+          # plot.title = element_text(size = 12)
+          #plot.margin = unit(c(1, 1, 1, 1), "cm")  # Increase top and bottom margins
+
           ) +
   labs(title = title,
        x = xlab,
-       y = "Belief difference (points = raw belief)")
+       y = str_wrap("Belief difference (points = raw belief)"))
+
 }
 
 ```
@@ -107,7 +110,7 @@ deltas_ind
 
 ```{r}
 combined_deltas <- ggarrange(deltas_consensus, deltas_ind, nrow = 2)
-ggsave(filename = here("analyses/07_Plots/combined-deltas.png"), width = 10, height = 5, plot = combined_deltas)
+ggsave(filename = here("analyses/07_Plots/combined-deltas.png"), width = 10, height = 6, plot = combined_deltas)
 
 ```
 
@@ -153,16 +156,16 @@ param_plot
 title = "Independent Consensus vs. No Consensus (Independent Contested)"
 xlab = "Participant (Ordered by consensus parameter, higher = more belief in consensus)"
 ylab = "Consensus Parameter"
-ind_param_plot <- paramPlot(remove_condition = "dependent", title, xlab, ylab)
-ind_param_plot
+cons_param_plot <- paramPlot(remove_condition = "dependent", title, xlab, ylab)
+cons_param_plot
 ```
 
 ```{r}
 title = "Independent Consensus vs. Dependent Consensus"
 xlab = "Participant (Ordered by independence parameter, > 0 = more belief in independence, < 0 = more belief in dependence)"
 ylab = "Independence Parameter"
-cons_param_plot <- paramPlot(remove_condition = "contested", title, xlab, ylab)
-cons_param_plot
+ind_param_plot <- paramPlot(remove_condition = "contested", title, xlab, ylab)
+ind_param_plot
 ```
 
 ## How many have a preference for independent sources versus dependent sources, and how many aren't sensitive at all?
@@ -232,8 +235,7 @@ paste0("Median estimate for participants who preferred an dependent consensus: "
 
 # Correlation between sessions for independence comparison
 
-It is useful to know whether people who were labeled as preferring an independent v dependent
-consensus appeared to show consistent behavior across sessions.
+It is useful to know whether people who were labeled as preferring an independent v dependent consensus appeared to show consistent behavior across sessions.
 
 ```{r}
 # deltas_ind_by_session <- data %>% 
@@ -301,16 +303,9 @@ cor_alt
 
 ```
 
-				
+The correlation appears to suggest reasonably consistent individual differences. Among participants who were labelled as not being best fit by the null model, there was a strong correlation between session 1 and session 2 ( 0.56 ). We would not expect there to be any correlation for participants best fit by the null mode, which there did not appear to be.
 
-The correlation appears to suggest reasonably consistent individual differences. Among partic-
-ipants who were labelled as not being best fit by the null model, there was a strong correlation
-between session 1 and session 2 ( 0.56 ). We would not expect there to be any correlation for
-participants best fit by the null mode, which there did not appear to be.				
-
-It may also be interesting to know what the correlation looks like when we include participants
-who were labelled as being best fit by the alternative model in either session 1 or session 2, as
-well as overall.
+It may also be interesting to know what the correlation looks like when we include participants who were labelled as being best fit by the alternative model in either session 1 or session 2, as well as overall.
 
 ```{r}
 # find participants who were best fit by the alternative model in at least one session
@@ -337,17 +332,7 @@ cor(session_estimates_at_least_one$consensus_estimate_1, session_estimates_at_le
 
 ```
 
-						
-
-The correlation is much smaller, but II don\'t think this is particularly informative as to the
-overall quality of our analysis/consistency of the results. If participants were labelled as being
-best described by the alternative model in only 1 session but not overall, this actually means
-that our analysis is doing a good job only classifying people who are consistently showing a
-particular behavior across the two sessions. It does tell us that having half the number of trials
-makes the analysis misleading because it can identify people as being best fit by the alternative
-model even when their results aren\'t consistent across sessions, which further justifies our
-sample size, but I do not think the low correlation suggests are results are inconsistent from
-session 1 to session 2.
+The correlation is much smaller, but II don't think this is particularly informative as to the overall quality of our analysis/consistency of the results. If participants were labelled as being best described by the alternative model in only 1 session but not overall, this actually means that our analysis is doing a good job only classifying people who are consistently showing a particular behavior across the two sessions. It does tell us that having half the number of trials makes the analysis misleading because it can identify people as being best fit by the alternative model even when their results aren't consistent across sessions, which further justifies our sample size, but I do not think the low correlation suggests are results are inconsistent from session 1 to session 2.
 
 # What strategy did people *say* they used?
 
@@ -410,13 +395,9 @@ prop_diverse_comparison <- c(`Full Sample` = prop_diverse_full, `Positive Beta` 
 barplot(prop_diverse_comparison)
 ```
 
-The above plot shows that the proportion of participants who said they preferred an indepen-
-dent consensus was only slightly higher for participants who showed behavior in line with that
-preference (positive beta) than in the full sample. This suggests that a lot of participants who
-said they preferred an independent consensus did not show behavior in line with this stated
-preference.
+The above plot shows that the proportion of participants who said they preferred an indepen- dent consensus was only slightly higher for participants who showed behavior in line with that preference (positive beta) than in the full sample. This suggests that a lot of participants who said they preferred an independent consensus did not show behavior in line with this stated preference.
 
-## Matching self reported preference with 
+## Matching self reported preference with
 
 ```{r}
 model_comparison_ind$self_report <- self_report$self_report_strategy
