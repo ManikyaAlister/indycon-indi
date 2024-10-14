@@ -6,9 +6,6 @@ format:
     execute:
       echo: false
       warning: false
-  # html:
-  #   code-fold: true
-  #   code-summary: "Show the code"
 editor: visual
 toc: true
 number-sections: true

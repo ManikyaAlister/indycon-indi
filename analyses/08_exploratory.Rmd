@@ -1,9 +1,13 @@
 ---
-title: "Exploratory analyses: pro/con + demographics"
+title: "Exploratory analyses: demographics"
 author: "Anonymised for peer review" #Eee Von Soh and Manikya 
 date: "2024-01-16"
+fig_height: 4 
 output:
-  pdf_document: default
+  bookdown::pdf_document2: 
+    keep_tex: true
+    df_print: kable
+    latex_engine: xelatex
 toc: true
 number-sections: true
 ---
@@ -13,24 +17,19 @@ number-sections: true
 library(here)
 library(tidyverse)
 library(dplyr)
+library(ggpubr)
 
-# make default that code is not shown in knit
-knitr::opts_chunk$set(echo = FALSE)
+# make default that code is not shown in knit, no warnings, and no mesages
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
-# make default that warning messages are not shown in knit
-knitr::opts_chunk$set(warning = FALSE)
-
-# make default that all messages are not shown in knit
-knitr::opts_chunk$set(message = FALSE)
-
+# endsure latex is rendered 
+#knitr::opts_knit$kable.force.latex
 
 # load data
 load(here("data/clean/all_data_clean.Rdata"))
 
 # All data
-data <- all_data[[1]] %>%
-  mutate(update = post_adjusted - pre_adjusted) # mutate() - create new column(s) that are functions of existing variables
-
+data <- all_data[[1]] 
 # Only data for dependent and independent condition
 d_independence <- data %>% 
   filter(consensus != "contested")
@@ -116,101 +115,78 @@ ggplot(df_education, aes(x = Education, y = Count, fill = Education)) +
   theme_minimal()
 ```
 
-```{r include = FALSE}
-social_media_df <- demographics %>% select(demographics_facebook, demographics_twitter)
-
-barplot(table(demographics$demographics_facebook, demographics$demographics_twitter), 
-        beside = TRUE, main = "Social Media Usage")
-```
-
 
 ```{r}
-merge_data_dem <- merge(data, demographics, by = c("participant"))
-```
-\pagebreak
-# Are people equally persuaded by claims arguing for (pro) and against (con)?
-
-Previous studies using our paradigm found that people were more or less equally convinced when posts argued for versus against the claim. For this reason, to preserve power in the individual level nalyses, we transformed the direction of belief changes on trials arguing against the claim rather than adding argument direction as a predictor. But was this a safe assumption? It's possible that the claim type X consensus interaction might only hold for tweets arguing a certain direction. 
-
-```{r}
-data_raw_update <- data %>%
-    filter(consensus != "contested") %>%
-    mutate(update_raw = post-pre)
+merge_data_dem <- merge(data, demographics, by = c("participant"))  %>%
+    mutate(politcal_group = factor(political_group, levels = c("Left wing","Centre", "Right wing")))
 
 
-mean_updates_procon <- data_raw_update  %>%
-  group_by(claim_type, consensus, side_A) %>%
-  summarise(mean_update = mean(update_raw),
-            se_update = sd(update_raw) / sqrt(n()),
-                        n_obs = n()
-  )
 
-colour_scale <- c("darkblue", "red")
-
-mean_updates_procon %>% 
-  ggplot(aes(x = side_A, y = mean_update, fill = consensus)) + 
-  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
-  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
-                position = position_dodge(.9), width = 0.2) +
-  geom_jitter(data = data_raw_update, aes(y = update_raw, colour = consensus, group = consensus),
-            position = position_jitterdodge(dodge.width = .9, jitter.width = .2), alpha = 0.1) +
-  ylim(-40, 69) +
-  labs(title = "",
-       x = "Claim Type",
-       y = "Mean Update (Post - Prior)") +
-  theme_bw()+
-  facet_wrap(~claim_type)+
-  theme(legend.position = "top") +
-  labs(colour = "Trial Type", fill = "Trial Type")+
-  scale_color_manual(values = colour_scale) + 
-  scale_fill_manual(values = colour_scale)   
 ```
 
-Although people seemed to be generally more convinced by posts arguing against the claim, the trend whereby a concensus was more convincing when the claim was more knowable appears to hold. 
+In this supplementary material we explore whether any of the individual differences in consensus strength may be able to be explained by demographic characteristics. We initially plot each of the relationships of interest, then follow up with a quantitative model comparison using Bayesian linear mixed effects models with interactions between consensus and each respective demographic variable. None of these analyses were preregistered. These analyses are meant for offering <b>speculation</b> only, with the goal of motivating future research to follow up these possible explanations. There are many aspects of the sample and design that make these analyses potentially unreliable, which we detail later.  
 
-```{r, message = FALSE}
-mean_updates_co <- d_consensus_only %>%
-  group_by(source, consensus) %>%
-  summarise(mean_update = mean(update),
-    se_update = sd(update) / sqrt(n())
-)
+Lines in the scatter plots below indicate a linear model fit to the points of the respective color using the geom_smooth function in R with method lm. The shaded area indicates the 95% Confidence Interval. Note that these linear models are not the same models that are fit in the model comparison later.
 
-mean_updates_co_w_claim_type <- d_consensus_only %>%
-  group_by(source, consensus, claim_type) %>%
-  summarise(mean_update = mean(update),
-    se_update = sd(update) / sqrt(n())
-)
-```
- 
- \pagebreak
- 
-For the rest of this document we will have a tentative look at different demographic variables to explore whether there might be an association with belief updates in different conditions. We are only looking at plots, not doing any quantitative analyses, and we won't be making any inferences -- but it's worth a look! None of this was pre-registered. 
-
-```{r, message = FALSE}
-# merge_data_dem %>%
-#   group_by(consensus, demographics_education) %>%
-#   summarise(mean_update = mean(update))
-```
 ```{r}
 # Define a function for plotting a basic grouped bar plot with optional ordering
-plot_grouped_bar <- function(by_variable, column, x_label, usage_ordering = NULL, label_angle = 0) {
-  
-  if (!is.null(usage_ordering)) {
-    plot <- ggplot(data = by_variable, aes(x = factor({{column}}, levels = usage_ordering), y = mean_update, fill = consensus)) +
-      geom_bar(position = "dodge", stat = "identity", color = "black") + 
-      labs(x = x_label, y = "Mean Update (Post - Prior)") + 
-      theme_minimal() + 
-      theme(axis.text.x = element_text(angle = label_angle, hjust = 1))
-  } else {
-    plot <- ggplot(data = by_variable, aes(x = {{column}}, y = mean_update, fill = consensus)) +
-      geom_bar(position = "dodge", stat = "identity", color = "black") + 
-      labs(x = x_label, y = "Mean Update (Post - Prior)") + 
-      theme_minimal() + 
-      theme(axis.text.x = element_text(angle = label_angle, hjust = 1))
+plot_grouped_bar <-
+  function(by_variable,
+           column,
+           x_label,
+           usage_ordering = NULL,
+           label_angle = 0,
+           show_n = FALSE) {
+    colour_scale <- c("purple", "darkblue", "red")
+    if (!is.null(usage_ordering)) {
+      plot <-
+        ggplot(data = by_variable, aes(
+          x = factor({
+            {
+              column
+            }
+          }, levels = usage_ordering),
+          y = mean_update,
+          fill = consensus
+        )) +
+        geom_bar(position = "dodge",
+                 stat = "identity",
+                 color = "black",
+                 alpha = .8) +
+        geom_errorbar(
+          aes(ymin = mean_update - se, ymax = mean_update + se),
+          position = position_dodge(0.9),
+          width = 0.2
+        ) +
+        labs(x = x_label, y = "Mean Update (Post - Prior)") +
+        theme_minimal() +
+        theme(axis.text.x = element_text(angle = label_angle, hjust = 1))
+    } else {
+      plot <-
+        ggplot(data = by_variable, aes(x = {
+          {
+            column
+          }
+        }, y = mean_update, fill = consensus)) +
+        geom_bar(position = "dodge",
+                 stat = "identity",
+                 color = "black",
+                 alpha = .8) +
+        geom_errorbar(
+          aes(ymin = mean_update - se, ymax = mean_update + se),
+          position = position_dodge(0.9),
+          width = 0.2
+        ) +
+        labs(x = x_label, y = "Mean Update (Post - Prior)") +
+        theme_minimal() +
+        theme(axis.text.x = element_text(angle = label_angle, hjust = 1))
+    }
+    
+    plot <- plot +
+      scale_color_manual(values = colour_scale) +
+      scale_fill_manual(values = colour_scale)
+    return(plot)
   }
-  
-  return(plot)
-}
 ```
 
 ```{r}
@@ -226,10 +202,10 @@ add_num_obs <- function(data, aggregate_data, plot, column, col_name, usage_orde
   
   if (!is.null(usage_ordering)){
     new_plot <- plot + geom_text(data = by_data_w_count, 
-            aes(x = factor({{column}}, levels = usage_ordering), y = 0, label = n_participants), position = position_dodge(1), vjust = vjust, inherit.aes = FALSE)
+            aes(x = factor({{column}}, levels = usage_ordering), y = 0, label = n_participants), position = position_dodge(1), vjust = vjust,colour = "darkgrey", inherit.aes = FALSE)
   }else{
     new_plot <- plot + geom_text(data = by_data_w_count, 
-            aes(x = {{column}}, y = 0, label = n_participants), position = position_dodge(1), vjust = vjust, inherit.aes = FALSE)
+            aes(x = {{column}}, y = 0, label = n_participants), position = position_dodge(1), vjust = vjust, inherit.aes = FALSE, colour = "darkgrey")
   }
 
   return(new_plot)
@@ -238,52 +214,57 @@ add_num_obs <- function(data, aggregate_data, plot, column, col_name, usage_orde
 
 ```{r}
 ## Add Jittered Points to Plot
-add_jitter <- function(data, plot, width = 0.2, alpha = .1){
+add_jitter <- function(data, plot, dodge_width = 1, width = 0.2, alpha = .1){
   
-  new_plot <- plot + geom_jitter(data = data, aes(y = update, colour = consensus), position = position_jitterdodge(dodge.width = width), alpha = alpha) 
+  new_plot <- plot + geom_jitter(data = data, aes(y = update, colour = consensus), position = position_jitterdodge(dodge.width = dodge_width), alpha = alpha) 
   
   return(new_plot)
 }
 ```
+\pagebreak
+# Education
+```{r}
+ed_order <- c("secondary","ged","vocational","bachelors","masters","doctorate")
 
-# Belief update as a function of education
-
-```{r, message = FALSE}
 by_education <- merge_data_dem %>%
   group_by(consensus, demographics_education) %>%
-  summarise(mean_update = mean(update), n_obs  = n()/60)
-```
+summarise(mean_update = mean(update),n_obs  = n()/60, sd = sd(update), se = sd / sqrt(n()))
 
-```{r}
-plot_education <- by_education %>%
-  ggplot(aes(x = demographics_education, y = mean_update)) +
-  geom_col(position = "dodge", aes(fill = consensus), colour = "black") +
-  #geom_jitter(data = merge_data_dem, aes(y = update, colour = consensus), position = position_jitterdodge(dodge.width = 1), alpha = .1) +
-  labs(title = " ", x = "Education", y = "Mean Update (Post - Prior)") +
-  theme_bw()
-
-```
-
-Labels indicate the number of participants in each group. 
-
-```{r}
+plot_education <- plot_grouped_bar(by_education, demographics_education, x_label = "Education", usage_ordering = ed_order)
 plot_education_with_num_obs <- add_num_obs(merge_data_dem, by_education, plot_education, demographics_education, "demographics_education", vjust = -6)
+```
+Since there is a large number of discrete categories, it makes sense to try and create subgroups so that that it is easier to interpret, and so that there is more power when modelling. One logical sub group is whether or not the participant went to university or not. Although this is not perfect, it could be informative since half of the sources used in the consensus were said to be from a university, so people who have a university education might interpret information from these sources differently. 
 
-plot_education_with_num_obs
+```{r}
+by_uni_ed <-  merge_data_dem %>%
+  group_by(consensus, university_education) %>%
+summarise(mean_update = mean(update),n_obs  = n()/60, sd = sd(update), se = sd / sqrt(n()))
+
+plot_uni_education <- plot_grouped_bar(by_uni_ed, university_education, x_label = "University Education")
+plot_unieducation_with_num_obs <- add_num_obs(merge_data_dem, by_uni_ed, plot_uni_education, university_education, "university_education", vjust = -6)
+
+
 ```
 
-# Belief update as a function of social media usage
+```{r education, fig.cap="Consensus by education. Numbers indicate the number of participants in each group."}
+ggarrange(plot_education_with_num_obs, plot_unieducation_with_num_obs, common.legend = TRUE, ncol = TRUE)
+```
+
+Looking at Figure \@ref(fig:education), there is some variability among each education category (top panel), though this does not appear to be obviously related to the number of years of education, and the sample szes are quite inconsistent. The bottom panel shows that the consensus effects appear to be equivalent regardless of university education. 
+
+\pagebreak
+
+# Social Media
 ```{r}
 # Constant
 USAGE_ORDERING <- c("daily", "weekly", "monthly", "rarely", "never")
 ```
 
-## Facebook
 ```{r, message = FALSE, include = FALSE}
 # Ignore this
 by_facebook <- merge_data_dem %>%
   group_by(consensus, demographics_facebook) %>%
-  summarise(mean_update = mean(update))
+summarise(mean_update = mean(update),n_obs  = n()/60, sd = sd(update), se = sd / sqrt(n()))
 ```
 
 ```{r, message = FALSE, include = FALSE}
@@ -318,92 +299,278 @@ plotA + geom_text(data = by_facebook_merge,
 ```{r, message = FALSE}
 by_facebook <- merge_data_dem %>%
   group_by(consensus, demographics_facebook) %>%
-  summarise(mean_update = mean(update))
+summarise(mean_update = mean(update),n_obs  = n()/60, sd = sd(update), se = sd / sqrt(n()))
 
 plot_facebook <- plot_grouped_bar(by_facebook, demographics_facebook, x_label = "Facebook Usage", usage_ordering = USAGE_ORDERING)
 
 ```
 ```{r}
-plot_facebook_with_num_obs <- add_num_obs(merge_data_dem, by_facebook, plot_facebook, demographics_facebook, col_name = "demographics_facebook", usage_ordering = USAGE_ORDERING, vjust = -22)
+plot_facebook_with_num_obs <- add_num_obs(merge_data_dem, by_facebook, plot_facebook, demographics_facebook, col_name = "demographics_facebook", usage_ordering = USAGE_ORDERING, vjust = -5)
 
-plot_facebook_with_num_obs
 ```
 
-## Twitter
 ```{r, message = FALSE}
 by_twitter <- merge_data_dem %>%
   group_by(consensus, demographics_twitter) %>%
-  summarise(mean_update = mean(update))
+summarise(mean_update = mean(update),n_obs  = n()/60, sd = sd(update), se = sd / sqrt(n()))
 
-plot_twitter <- plot_grouped_bar(by_twitter, demographics_twitter, x_label = "Twitter Usage", usage_ordering = USAGE_ORDERING)
+plot_twitter <- plot_grouped_bar(by_twitter, demographics_twitter, x_label = "Twitter (X) Usage", usage_ordering = USAGE_ORDERING)
 
 ```
 
 ```{r}
-plot_twitter_with_num_obs <- add_num_obs(merge_data_dem, by_twitter, plot_twitter, demographics_twitter, "demographics_twitter", usage_ordering =  USAGE_ORDERING, vjust = -22)
-
-plot_twitter_with_num_obs
+plot_twitter_with_num_obs <- add_num_obs(merge_data_dem, by_twitter, plot_twitter, demographics_twitter, "demographics_twitter", usage_ordering =  USAGE_ORDERING, vjust = -5)
 ```
 
-# Belief Updates as a function of political affiliation
+```{r facebook-twitter, fig.cap= "Consensus by frequency of Facebook and Twitter/X usage." }
+ggarrange(
+plot_twitter_with_num_obs,
+plot_facebook_with_num_obs,
+common.legend = TRUE,
+legend = "bottom",
+ncol = 1)
+```
+
+Figure \@ref(fig:facebook-twitter) shows belief updating in each consensus condition as a function of how often participants reported using Facebook and Twitter/X respectively. One observation is that participants who used social media less appeared to have a stronger preference for independence compared to dependence. One problem that arises for any further analysis is that while these are technically categorical data, they, in theory, map onto a numeric value of how often participants use each platform each year. If we can transform these categories into numeric estimates of their social media use we can 1) aggregate both Facebook and Twitter/X into a single social media variable and 2) assess whether there is a linear relationship between how often people use social media and the extent to which they are persuaded by different kinds of consensus. 
+
+The approach that we took was to create a transformed "Proportionate Social Media" variable, where we translated each category into a rough estimate of how much they use each social media platform every year. This is extremely noisy, but may provide some insight on the relationship between social media use and consensus effects. Specifically, we translate the scale such that daily = 365, weekly = 52, monthly = 12, rarely = 1, and never = 0. We then aggregated the two social medias such that, for example, if a participant selected daily for both, their proportionate social media score would be 730. 
+
+```{r}
+checkRelationship = function(data = merge_data_dem, rm_conds = c("dependent", "contested"), variable, var_label){
+  plot_list <- NULL
+  
+  for ( i in 1:length(rm_conds)){
+    rm_cond <- rm_conds[i]
+      if (rm_cond == "contested"){
+    colour_scale <- c("blue", "red")
+  } else if (rm_cond == "dependent"){
+    colour_scale <- c("purple", "red")
+  }
+  
+  plot_list[[i]] <- data %>%
+    filter(consensus != rm_cond) %>%
+    group_by(participant, consensus) %>%
+    summarise(update = mean(update), var = mean(get(variable))) %>%
+    ggplot(aes(x = var, y = update, colour = consensus)) +
+    labs(x = var_label, y = "Belief Update (Post - Pre)") +
+    geom_point() +
+    geom_smooth(method = "lm", aes(fill = consensus))+
+    scale_colour_manual(values = colour_scale)+
+    scale_fill_manual(values = colour_scale)+
+    theme_bw()
+  }
+  
+combined_plot <- ggarrange(plotlist = plot_list, legend = "bottom")  
+combined_plot
+
+}
+
+```
+
+
+
+```{r socmed, fig.cap= "Consensus by loosely estimated social media use (Facbook and Twitter/X) per year." }
+checkRelationship(variable = "socmed_proportionate", var_label = "Proportionate Social Media Use")
+```
+
+Figure \@ref(fig:socmed) shows that there is a small relationship between social media use and consensus independence, such that people who use social media more to be more persuaded by a consensus. The right hand panel shows that there was also a relationship between social media use and the difference in belief in an independent consensus versus dependent consensus, such that people who use social media less tended to be more persuaded by independence relative to dependence. 
+
+
+
+# Political Identity
 
 ## All groups
 
-```{r, message = FALSE}
+```{r politics, message = FALSE, fig.cap="Consensus by political identity"}
+pol_order <- c("anarch", "soc", "strongLib", "modLib", "slightLib", "middle", "slightCons", "modCons", "strongCons")
 by_politics <- merge_data_dem %>%
   group_by(consensus, demographics_politics) %>%
-  summarise(mean_update = mean(update))
+summarise(mean_update = mean(update),n_obs  = n()/60, sd = sd(update), se = sd / sqrt(n()))
 
-plot_politics <- plot_grouped_bar(by_politics, demographics_politics, x_label = "Politics", label_angle = 45)
-
-```
-
-```{r}
-plot_politics_with_num_obs <- add_num_obs(merge_data_dem, by_politics, plot_politics, demographics_politics, "demographics_politics", vjust = -16.5)
-
+plot_politics <- plot_grouped_bar(by_politics, demographics_politics, x_label = "Political Identity", label_angle = 45, usage_ordering = pol_order)
+plot_politics_with_num_obs <- add_num_obs(merge_data_dem, by_politics, plot_politics, demographics_politics, "demographics_politics", vjust = -1, usage_ordering = pol_order)
 plot_politics_with_num_obs
-```
-
-## Left, centre, right
-```{r}
-pol_left <- c("modLib", "slightLib", "strongLib", "soc", "anarch")
-pol_right <- c("modCons", "slightCons", "strongCons")
-
-political_group <- merge_data_dem %>%
-  mutate(
-    political_group = case_when(demographics_politics %in% pol_left ~ "Left wing",
-                                demographics_politics %in% pol_right ~ "Right wing",
-                                demographics_politics == "middle" ~ "Centre")
-  ) %>%
-  group_by(consensus, political_group) %>%
-  summarise(mean_update = mean(update))
-
-plot_politics_group <- plot_grouped_bar(political_group, political_group, x_label = "Politics", label_angle = 45)
-
-plot_politics_group
 
 ```
+
+Figure \@ref(fig:politics) shows consensus effects as a function of all of the political identities selected in our study. Let's try to break it down into some more informative categories. For example, whether the identity was associated with the Left, Right, or Middle. 
+
 \pagebreak
 
-# Belief update (independent vs. dependent) as a function of age
+## Left, centre, right
+```{r political-dir, fig.cap="Consensus as a function of political direction"}
+pol_group_order <- c("Left wing", "Centre", "Right wing")
+d_political_group <- merge_data_dem %>%
+  group_by(consensus, political_group) %>%
+summarise(mean_update = mean(update),n_obs  = n()/60, sd = sd(update), se = sd / sqrt(n()))
 
-Correlation between age (x axis) and the difference between belief on independent vs. dependent trials (y). 
+plot_politics_group <- plot_grouped_bar(d_political_group, political_group, x_label = "Politics", label_angle = 45, usage_ordering = pol_group_order)
+plot_politics_group_with_num_obs <- add_num_obs(merge_data_dem, d_political_group, plot_politics_group, political_group, "political_group", vjust = -1, usage_ordering = pol_group_order)
 
-```{r}
-deltas_claim_type <- merge_data_dem %>% 
-  filter(consensus != "contested") %>%
-  pivot_wider(names_from = consensus, values_from = update) %>%
-  group_by(participant) %>%
-  summarise(delta = mean(independent, na.rm = TRUE)-mean(dependent, na.rm = TRUE), age = mean(demographics_age))
-  
-plot(deltas_claim_type$delta, deltas_claim_type$age, ylab = "Age", xlab = "Independent belief update minus dependent")
-paste0("r = ", round(cor(deltas_claim_type$delta, deltas_claim_type$age),2))
+plot_politics_group_with_num_obs
 
 ```
 
+Figure \@ref(fig:political-dir) shows that participants who identified with the political center appeared to be more convinced by consensus generally, and had a slightly smaller difference between dependent consensus and independent consensus, although the unbalanced sample sizes makes comparison difficult. These unbalanced sample sizes are essential to keep in mind while interpreting these graphs, as they are unlikely to be representative of the political groups with smaller sample sizes (e.g., Right wing groups).
+
+\pagebreak
+
+## Political Scale (Strong Left to Strong Right)
+```{r political-scale, fig.cap="Consensus by strength of identification with Left versus Right"}
+d_pol_scale <- merge_data_dem %>%
+  filter(!demographics_politics %in% c("anarch", "soc"))
+
+checkRelationship(data = d_pol_scale, variable = "political_scale", var_label = "Political Scale")
+```
+
+Most of the political identities that were selected can be transformed to a linear scale of strong left (-3), moderate left (-2), slight left (-2), middle (0), slight conservative (1), moderate conservative (2),  strong conservative (3). We removed the two participants who did not fit on this scale (as they selected “anarchist” and “socialist”). 
+
+The left side of Figure \@ref(fig:political-scale) shows that people tended to be slightly less convinced by a contested consensus as they identified more strongly with the right. Further, participants who more strongly associated with the Left tended to show a greaer preference for independence compared to dependence. However, there was substantial uncertainty, with lots of overlap between the confidence intervals (shaded area) of the linear models (lines). Figure \@ref(fig:political-strength) shows no obvious relationship between political identity and a standard consensus effect (left), however participants with stronger political affiliations tended to have a stronger preference for independence compared to dependence (right). Once again though, this difference was very noisy, with high overlap between the 95% confidence intervals. 
+
+\pagebreak
+
+## Political Strength
+
+Another way we can examine political affiliation is in the absolute strength of political identification, where those who identified with the Center were coded as 0, and those who identified strongly with wither the Left or the Right were coded as 3. 
+
+```{r political-strength, fig.cap="Consensus by political strength."}
+checkRelationship(data = d_pol_scale, variable = "political_strength", var_label = "Political Strength (Centre to Strong)")
+```
+
+
+\pagebreak
+
+# Age
+
+It is plausible that people might interact differently with a consensus presented in an online environment based on their age. The right side of Figure \@ref(fig: age) shows that there is unlikely to be an interaction between age and the standard consensus effect. The left side, however, suggests that older participants showed a larger preference for an independent consensus compared to a dependent consensus. However, as with all of the independent vs. dependent comparisons so far, the results appear highly uncertain. 
+
+```{r age, fig.cap= "Consensus by Age."}
+checkRelationship(variable = "demographics_age", var_label = "age")
+```
+
+
+## Summary of qualitative analyses
+In general, while we cannot make specific conclusions about whether any of these demographic variables are underlying individual variation, these plots suggest that the independent vs. dependent comparison was more likely to vary based on demographic characteristics. This makes sense, given that our main analyses found that there was more individual variation for this comparison. In the next comparison, we perform a more rigorous quantitative test of the relationship between these demographic variables and consensus effects.  
+
+\pagebreak
+
+# Model Comparison
+
+Our primary quantitative analysis was a comparison of 6 additional Bayesian mixed effects models with the same structure as our main group level analyses, including random intercepts for each subject. These models all included the same outcome variable (beliefs after seeing the tweets, “pre”), as well as the predictor of their prior belief in the claim, (“pre”), and an interaction with the consensus condition (consensus). As is in the main analyses, we split the data into our two comparisons of interest; contested vs. independent and dependent vs. independent, running all of the models separately for each comparison. We have detailed these analyses in the supplementary materials, but we will also describe the analyses and their results here. The demographic variables that we analyzed were: 
+
+- Age: See see Figure \@ref(fig:age). Numeric age of participants. 
+- Political group: See Figure \@ref(fig:political-group). Whether the participant selected a political identity aligned with the Left (Slight Left, Moderate Left, Strong Left, Socialist, Anarchist) , Center, or Right (slight right, moderate right, strong right). It is important to mention that our sample was not balanced, and there were substantially more people identifying with the Left compared to the Right and Middle. 
+- Political scale: See Figure \@ref(fig:political-scale) Most of the political identities that were selected can be transformed to a linear scale of strong left (-3), moderate left (-2), slight left (-2), middle (0), slight conservative (1), moderate conservative (2),  strong conservative (3). We removed the two participants who did not fit on this scale (as they selected “anarchist” and “socialist”). 
+- Political strength: See Figure \@ref(fig:political-scale). Same as political scale, but transformed so that it is the absolute value, therefore on a scale from 0 (no right/left political preference) to 3 (strong), regardless of direction or affiliation. 
+- Education: See bottom panel of Figure \@ref(fig:education). Participants could select a number of options to indicate their level of education. In the current sample, "secondary"  "masters"  "bachelors"  "ged"   "vocational", and "doctorate" were selected. In its raw form, these options were not particularly informative, so we chose to divide participants into either university educated (bachelors, masters, or doctorate), or not (secondary, ged, or vocational). We thought that this would be an informative distinction since university educated students would be more likely to have had training interpreting scientific or other scholarly sources, so the primary sources in the consensus (universities and news companies) may have a different effect on their belief updating.  
+- Social Media: See Figure \@ref(fig:socmed). Estimate of how much each participant used social media each year based on their response, where daily = 365, weekly = 52, monthly = 12, rarely = 1, and never = 0. We then aggregated the scores from both social media platforms to create a combined social media variable. This is, of course, not particularly precise, but may be able to pick up on some associations between social media use and sensitivity to consensus effects. 
+
+We then performed a model comparison to determine whether the models including <demographic variable> X consensus interactions outperformed the previously best performing model reported in the main text. In other words, we were interested in whether including each respective demographic variable improved the model performance over and above the models that only included prior, claim type, and consensus.
 
 
 
+```{r}
+formatModelComparison = function(mc_data){
+  table <- mc_data %>% 
+    mutate(model = case_when(
+      model == "group-prior" ~ "pre",
+      model == "group-prior-consensus" ~ "pre + consensus",
+      model == "group-prior-consensus-claim" ~ "pre + consensus + claim type",
+      model == "group-prior-consensusXclaim" ~ "pre + consensus X claim type",
+      model == "group-prior-consensus*age" ~ "pre + consensus X age",
+      model == "group-prior-consensus*unieducation" ~ "pre + conesnsus X university education",
+      model == "group-prior-consensus*socmedprop" ~ "pre + consensus X social media",
+      model == "group-prior-consensus*politcalscale" ~ "pre + consensus X political scale",
+      model == "group-prior-consensus*politcalstrength" ~ "pre + consensus X political strength",
+      model == "group-prior-consensus*politcalgroup" ~ "pre + consensus X political group"
+    ))%>%
+    rename(Model = model, LOOIC = all_looic, SE = all_se, Rank = rank)
+  
+    # format nice
+    knitr::kable(table, format = "pandoc", escape = FALSE, row.names = TRUE)
+
+}
+```
 
 
+## Independent vs. contested
+```{r}
+load(here("data/derived/group_output_combined.Rdata"))
+mc_rm_dependent <- model_LOOICs %>%
+  filter(excluded_condition == "dependent", !is_follow_up ) %>% 
+  mutate(rank = rank(all_looic)) %>%
+  select(-is_follow_up, -is_demographic, -excluded_condition)
 
+formatModelComparison(mc_rm_dependent)
+
+```
+
+The only demographic model that performed better than a model including no demographics was the model that included a `consensus` $\times$ `political strength` interaction. Indeed, this model preformed better than the previously best performing model, which was the  `consensus` $\times$ `claim type` model.
+
+```{r}
+formatOutput = function(output, demographic_variable) {
+  sum_output <- summary(output, prob = .89)
+  fixed_effects <- sum_output$fixed
+  rownames(fixed_effects) <- c(
+    "Intercept",
+    "Pre",
+      "Consensus$_{\\text{Independent}}$ ",
+    demographic_variable,
+    paste0(
+      "Consensus$_{\\text{Independent}}$ X ",
+      demographic_variable
+    )
+  )
+  fixed_effects <-fixed_effects %>%
+    rename(Error = Est.Error) %>%
+    select(-Bulk_ESS,-Tail_ESS,-Rhat)
+  
+  knitr::kable(fixed_effects, format = "pandoc", escape = FALSE, row.names = TRUE)
+ }
+```
+
+
+## Political Scale (Strong Left to Strong Right)
+
+```{r}
+load(here("analyses/02_output/group-prior-consensus*politcalscale-rm-dependent.Rdata"))
+formatOutput(output, "Political Scale")
+
+
+```
+
+## Political Strength (Centre to Strong)
+
+```{r}
+load(here("analyses/02_output/group-prior-consensus*politcalstrength-rm-dependent.Rdata"))
+formatOutput(output, "Political Strength")
+```
+
+## Indpendent vs. dependent
+
+```{r}
+mc_rm_contested <- model_LOOICs %>%
+  filter(excluded_condition == "contested", !is_follow_up) %>% 
+  mutate(rank = rank(all_looic)) %>%
+    select(-is_follow_up, -is_demographic, -excluded_condition)
+
+
+formatModelComparison(mc_rm_contested)
+```
+
+
+\pagebreak
+
+### Political Scale (Storng Left to Strong Right)
+
+```{r}
+load(here("analyses/02_output/group-prior-consensus*politcalscale-rm-contested.Rdata"))
+formatOutput(output, "Political Scale")
+```
+
+### Political Strength (Centre to Strong)
+
+```{r}
+load(here("analyses/02_output/group-prior-consensus*politcalstrength-rm-contested.Rdata"))
+formatOutput(output, "Political Strength")
+```

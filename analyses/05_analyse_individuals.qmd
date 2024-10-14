@@ -28,8 +28,7 @@ library(RColorBrewer)
 ```{r}
 load(here("data/derived/model_comparison.Rdata"))
 load(here("data/clean/all_data_clean.Rdata"))
-data <- all_data[[1]] %>%
-    mutate(update = post_adjusted - pre_adjusted) 
+data <- all_data[[1]]
 ```
 
 # Raw Data
@@ -340,7 +339,7 @@ Comparing their behavior with their self-reported preference.
 
 ```{r}
 
-self_report <- as.data.frame(all_data[[4]])
+self_report <- as.data.frame(all_data$follow_up)
 
 # get just the multiple choice anser
 self_report_mc <- self_report$self_report_strategy
@@ -396,6 +395,21 @@ barplot(prop_diverse_comparison)
 ```
 
 The above plot shows that the proportion of participants who said they preferred an indepen- dent consensus was only slightly higher for participants who showed behavior in line with that preference (positive beta) than in the full sample. This suggests that a lot of participants who said they preferred an independent consensus did not show behavior in line with this stated preference.
+
+```{r}
+self_report <- self_report %>%
+  mutate(report_independence = ifelse(self_report_strategy == "diverse", T, F))
+  
+self_report %>%
+  group_by(report_independence) %>%
+  summarise(mean_coefficient =mean(coefficient)) %>%
+  ggplot()+
+  geom_col(aes(x = report_independence, y = mean_coefficient))
+
+t.test(data = self_report, coefficient ~ report_independence)
+
+mean(self_report$coefficient[self_report$report_independence == T])
+```
 
 ## Matching self reported preference with
 

@@ -46,7 +46,7 @@ d_json <- read_json(here(RAW_DATA_FILE))
 #t <- as.character(unname(as.matrix(sapply(test, function(x) x["P"]))))
 
 # function to clean learning phase data
-cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst to whether all of the sessions have completed, so there should be 60 trials
+cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete refers to whether all of the sessions have completed, so there should be 60 trials
   raw_data <- raw_data[[1]]
   all_variables <- names(raw_data)
   all_data <- NULL
@@ -59,6 +59,11 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
   rm_drop_out <- NULL
   # data frame to store follow up questions
   follow_ups <- NULL 
+  # keep track of people who removed for accuracy in session 1
+  rm_accuracy_s1 <- NULL 
+  
+  # keep track of participant ids and session numbers
+  id_sesh <- NULL
   for (i in 1:length(raw_data)) {
     print(i)
     #if (i == 44) next
@@ -143,14 +148,18 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
     session_number <- d_participant[["session_number"]]
     print(session_number)
     
-    accuracy_info <- c(mean_accuracy,prolific_id)
+    accuracy_info <- c(mean_accuracy,prolific_id, session_number)
     
     #print(paste0("Accuracy: ", mean_accuracy, " Participant: ", prolific_id))
 
     if (mean_accuracy < .9){
       rm_accuracy <- rbind(rm_accuracy, accuracy_info)
-      next
+     # next
+      if (session_number == 1){
+        rm_accuracy_s1 <- rbind(rm_accuracy_s1, accuracy_info)
+      }
     }
+    
     
     if (session_number == 2){
       self_report_strategy <- d_participant[["followUp_strategy"]]
@@ -159,6 +168,9 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
       # store the follow up strategies 
       follow_ups <- rbind(follow_ups, c(prolific_id, self_report_strategy, self_report_free))
     }
+    
+    # get pid and session 
+   id_sesh <-  rbind(id_sesh, c(id = prolific_id, session = session_number))
     
     getTrialReadTimes <- function(read_time){
       times <- as.numeric(strsplit(read_time, ":", fixed = TRUE)[[1]])
@@ -249,7 +261,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
       # empty subject number column
       demographics$participant <- NA
       rownames(demographics) <- NULL
-      all_demographics <- rbind(all_demographics, demographics)
+      all_demographics <- rbind(all_demographics, demographics) 
       
     }
     
@@ -264,16 +276,66 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
              post = as.numeric(`slider-post`),
              pre = as.numeric(`slider-pre`),
              post_adjusted = ifelse(side_A == "con"  & consensus != "contested", (100-post), post),
-             pre_adjusted = ifelse(side_A == "con"  & consensus != "contested", (100-pre), pre))
+             pre_adjusted = ifelse(side_A == "con"  & consensus != "contested", (100-pre), pre),
+             # calculate whether people 'were originally for/against a given claim's prior originally matched or went against the consensus 
+             original_stance_against_consensus = case_when(pre < 50 & side_A == "pro" & consensus != "contested" ~ T,
+                                                 pre > 50 & side_A == "con" & consensus != "contested" ~ T,
+                                                 pre < 50 & consensus == "contested" ~ T,
+                                                 TRUE ~ F
+                                                   ),
+             original_stance_against_claim = ifelse(pre < 50, T,F),
+             original_stance_claim = case_when(
+               pre < 50 ~ "against",
+               pre == 50 ~ "equal",
+               pre > 50 ~ "for"
+             ),
+             changed_mind = case_when(
+               pre < 50 & post > 50 ~ T,
+               pre > 50 & post < 50 ~ T,
+               pre == 50 ~ NA,
+               TRUE ~ F
+             ),
+             update = post_adjusted - pre_adjusted
+      )
     # remove unnecessary columns
     data <- data_all %>%
-      select(ANON_PID, session_number, claim_set, claim, claim_type, broad_claim_type, source, pre, post, pre_adjusted, post_adjusted, consensus, side_A, side_B,
-             nSources_A, nSources_B, prop_pro, trial_accuracy, total_duration,  stances, tweetOrder)
+      select(
+        ANON_PID,
+        session_number,
+        claim_set,
+        claim,
+        claim_type,
+        broad_claim_type,
+        source,
+        pre,
+        post,
+        original_stance_against_consensus,
+        original_stance_against_claim,
+        original_stance_claim,
+        changed_mind,
+        pre_adjusted,
+        post_adjusted,
+        update,
+        consensus,
+        side_A,
+        side_B,
+        nSources_A,
+        nSources_B,
+        prop_pro,
+        trial_accuracy,
+        total_duration,
+        stances,
+        tweetOrder,
+        index
+      )
   all_data <- rbind(all_data, data)
+  # keep a version of this without any removals
+  all_data_nr <- all_data
   }
   
   # get all of the unique prolific id's
   all_prolific_ids <- unique(all_data$ANON_PID)
+  print(paste0("all subjects: ", length(all_prolific_ids)))
   # for each unique participant, filter data into their own data set 
   for (i in 1:length(all_prolific_ids)){
     print(i)
@@ -288,18 +350,21 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
     
     # if mean accuracy less than .9, add to rm_accuracy df
     if (mean_accuracy < .9){
-      rm_accuracy <- rbind(rm_accuracy, c(mean_accuracy, id))
+     # rm_accuracy <- rbind(rm_accuracy, c(mean_accuracy, id))
     }
 
-    if (all_complete & n_trials != 60){
+    if (all_complete & n_trials == 30){
       rm_drop_out <- c(rm_drop_out, id)
     }
 
+    colnames(follow_ups) <- c("prolific_id", "self_report_strategy", "self_report_free")
+    
     if (all_complete){
-      if (n_trials != 60 | mean_accuracy < .9){
+      if (n_trials == 30 | mean_accuracy < .9){
         # remove participants who didn't complete the experiment or whose accuracy was below 90%
         all_data <- all_data[all_data$ANON_PID != id,]
         all_demographics <- all_demographics[all_demographics$ANON_PID != id,]
+        follow_ups <- follow_ups[follow_ups[,"prolific_id"] != id,]
 
         # do not output data for participants who didn't complete the experiment
         next
@@ -336,11 +401,55 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete referst 
   all_data <- all_data[order(all_data$participant), ]
   follow_ups <- follow_ups[order(follow_ups$participant),]
   
+  # categorize political identities
+  pol_left <- c("modLib", "slightLib", "strongLib", "soc", "anarch")
+  pol_right <- c("modCons", "slightCons", "strongCons")
+  
+  
+  # transform demographic variables
+  all_demographics <- all_demographics %>%
+    mutate(
+      political_group = case_when(demographics_politics %in% pol_left ~ "Left wing",
+                                  demographics_politics %in% pol_right ~ "Right wing",
+                                  demographics_politics == "middle" ~ "Centre"),
+      # convert politics scale from far left to far right
+      political_scale = case_when(
+        demographics_politics %in% c("soc", "anarch") ~ -4,
+        demographics_politics == "strongLib" ~ -3,
+        demographics_politics == "modLib" ~ -2,
+        demographics_politics == "slightLib" ~ -1,
+        demographics_politics == "middle" ~ 0,
+        demographics_politics == "slightCons" ~ 1,
+        demographics_politics == "modCons" ~ 2,
+        demographics_politics == "strongCons" ~ 3,
+      ),
+      # convert into absolute strength of politcal belief 
+      political_strength = abs(political_scale),
+      # convert social media response into *roughly* how much each person uses it each year based on their response
+      twitter_proportionate = case_when(
+        demographics_twitter == "daily" ~ 365,
+        demographics_twitter == "weekly" ~ 52,
+        demographics_twitter == "monthly" ~ 12,
+        demographics_twitter == "rarely" ~ 6,
+        demographics_twitter == "never" ~ 0,
+      ),
+      facebook_proportionate = case_when(
+        demographics_facebook == "daily" ~ 365,
+        demographics_facebook == "weekly" ~ 52,
+        demographics_facebook == "monthly" ~ 12,
+        demographics_facebook == "rarely" ~ 6,
+        demographics_facebook == "never" ~ 0,
+      ),
+      socmed_proportionate = twitter_proportionate + facebook_proportionate,
+      university_education = ifelse(demographics_education %in% c("masters", "doctorate", "bachelors"), T,F)
+      )
+  
   # Moving the 'id' column to the front
   all_data <- all_data[c("participant", names(all_data)[-which(names(all_data) == "participant")])]
   follow_ups <- follow_ups[c("participant", names(follow_ups)[-which(names(follow_ups) %in% c("participant", "ANON_PID"))])]
+  #print(id_sesh)
+  list(data = all_data, rm_accuracy = rm_accuracy, rm_drop_out = rm_drop_out, follow_up = follow_ups, demographics = all_demographics, no_removals = all_data_nr, rm_accuracy_s1 = rm_accuracy_s1)
   
-  list(data = all_data, rm_accuracy = rm_accuracy, rm_drop_out = rm_drop_out, follow_up = follow_ups, demographics = all_demographics)
 }
 
 # indicate whether 
@@ -351,12 +460,24 @@ save(all_data, file = here("data/clean/all_data_clean.Rdata"))
 
 just_data <- all_data[[1]]
 accuracy_data <- all_data[[2]]
+# total participants removed for accuracy
 rm_accuracy <- length(unique(accuracy_data[,2]))
 rm_accuracy_ids <- unique(accuracy_data[,2])
 rm_accuracy_string <- paste(rm_accuracy_ids, collapse = ",")
 
-paste0(rm_accuracy, " participants removed for accuracy < .9")
-rm_drop_out <- length(all_data[[3]])
+paste0(rm_accuracy, " total participants removed for accuracy < .9")
+
+# participants removed for accuracy in s1 ad not invited back
+rm_acc_s1 <- unique(all_data$rm_accuracy_s1[,2])
+paste0(length(rm_acc_s1), " participants removed for accuracy < .9 in session 1 and not invited back")
+
+# find out who did not complete s2 of the participants who were invited to return from s1
+
+rm_drop_out_ids <- unique(all_data$rm_drop_out)
+rm_drop_out_s2 <- rm_drop_out_ids[!rm_drop_out_ids %in% rm_acc_s1]
+rm_drop_out <- length(rm_drop_out_s2)
+
+
 paste0(rm_drop_out, " participants removed for failing to complete session 2")
 follow_ups <- all_data[[4]]
 paste0(length(unique(just_data$ANON_PID)), " participants remain after cleaning.")

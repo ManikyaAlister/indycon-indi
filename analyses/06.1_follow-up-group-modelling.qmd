@@ -25,8 +25,7 @@ library(brms)
 ```{r}
 load(here("data/derived/model_comparison.Rdata"))
 load(here("data/clean/all_data_clean.Rdata"))
-data <- all_data[[1]] %>%
-    mutate(update = post_adjusted - pre_adjusted) 
+data <- all_data[[1]] 
 
 d_independence <- data %>% 
   filter(consensus != "contested")
@@ -39,7 +38,7 @@ d_consensus_only <- data %>%
 
 We preregistered that if we did not find an interaction between consensus X claim type for the four categories of claims then we would repeat the analyses on the two categories of claims. We did not find a claim type X consensus interaction for the independent X dependent comparison, so here we report the modelling with the two broad claim types.
 
-## Qualitative Evalulation
+## Qualitative Evaluation
 
 ```{r}
 mean_updates <- data %>%
