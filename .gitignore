@@ -70,3 +70,4 @@ Data/raw/non-anonymised/*
 # log and output files 
 analyses/*.log
 analyses/*.tex
+analyses/*_files/*
