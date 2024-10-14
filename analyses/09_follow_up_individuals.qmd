@@ -17,8 +17,7 @@ library(here)
 library(tidyverse)
 load(here("data/derived/model_comparison.Rdata"))
 load(here("data/clean/all_data_clean.Rdata"))
-data <- all_data[[1]] %>%
-    mutate(update = post_adjusted - pre_adjusted) 
+data <- all_data[[1]] 
 
 d_independence <- data %>%
   filter(consensus != "contested")
