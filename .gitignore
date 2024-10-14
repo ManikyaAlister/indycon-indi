@@ -63,3 +63,10 @@ rsconnect/
 
 submissions/*
 presentations/*
+
+# do not include data that has prolific ids
+Data/raw/non-anonymised/*
+
+# log and output files 
+analyses/*.log
+analyses/*.tex
