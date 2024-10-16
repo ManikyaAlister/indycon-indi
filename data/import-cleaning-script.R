@@ -383,6 +383,10 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete refers t
 
     # save participant data
     save(participant_data, file = here(paste0("data/clean/P",participant, ".Rdata")))
+    
+    # save csv version as per reviewer request
+    write.csv(participant_data, file = here(paste0("data/clean/csv_version/P",participant, ".csv")))
+    
 
     }
   }
@@ -457,6 +461,10 @@ all_complete <- TRUE
 
 all_data <- cleaning_fun(d_json, all_complete = all_complete)
 save(all_data, file = here("data/clean/all_data_clean.Rdata"))
+
+# save the just the data for all participants as a csv as requested by reviewer. 
+write.csv(all_data$data, file = here("data/clean/csv_version/all_data_clean.csv"))
+
 
 just_data <- all_data[[1]]
 accuracy_data <- all_data[[2]]
