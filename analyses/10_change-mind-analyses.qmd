@@ -1,0 +1,118 @@
+---
+title: "Change of Mind Analyses"
+author: "Anonymised for peer review"
+format: 
+  pdf: 
+    execute:
+      echo: false
+      warning: false
+toc: true
+number-sections: true
+bibliography: references.bib
+jupyter: python3
+---
+
+# Was the original stance against the claim?
+
+```{r}
+load(here("data/clean/all_data_clean.Rdata"))
+data <- all_data$data
+```
+
+```{r}
+# Define a function for plotting a basic grouped bar plot with optional ordering
+plot_grouped_bar <- function(by_variable, column, x_label, usage_ordering = NULL, label_angle = 0, show_n = FALSE) {
+  colour_scale <- c("purple", "darkblue", "red")
+  
+  # Check if usage_ordering is provided and build the base plot accordingly
+  if (!is.null(usage_ordering)) {
+    plot <- ggplot(data = by_variable, aes(x = factor({{column}}, levels = usage_ordering), y = mean_update, fill = consensus)) +
+      geom_bar(position = "dodge", stat = "identity", color = "black", alpha = .8) + 
+      geom_errorbar(aes(ymin = mean_update - se, ymax = mean_update + se), 
+                    position = position_dodge(0.9), width = 0.25) + 
+      labs(x = x_label, y = "Mean Update (Post - Prior)") + 
+      theme_minimal() + 
+      theme(axis.text.x = element_text(angle = label_angle, hjust = 1))
+  } else {
+    plot <- ggplot(data = by_variable, aes(x = {{column}}, y = mean_update, fill = consensus)) +
+      geom_bar(position = "dodge", stat = "identity", color = "black", alpha = .8) + 
+      geom_errorbar(aes(ymin = mean_update - se, ymax = mean_update + se), 
+                    position = position_dodge(0.9), width = 0.25) + 
+      labs(x = x_label, y = "Mean Update (Post - Prior)") + 
+      theme_minimal() + 
+      theme(axis.text.x = element_text(angle = label_angle, hjust = 1))
+  }
+
+  # Add color and fill scales
+  plot <- plot + 
+    scale_color_manual(values = colour_scale) +
+    scale_fill_manual(values = colour_scale)+
+    theme(legend.position = "bottom")
+  
+  return(plot)
+}
+
+```
+
+```{r}
+by_original_stance_claim <- data %>%
+  group_by(consensus, original_stance_claim) %>%
+  summarise(
+    mean_update = mean(update),
+    n_obs = n(),
+    se = sd(update) / sqrt(n_obs)
+  )
+
+
+plot_original_stance_claim <- plot_grouped_bar(by_original_stance_claim, original_stance_claim, x_label = "Original Stance on Claim")
+plot_original_stance_claim + geom_text(data = by_original_stance_claim, aes(label = n_obs, x = original_stance_claim, y = -5), position = position_dodge(width = 1))
+
+ggsave(here("analyses/07_Plots/original-stance-claim.png"), width = 7, height = 3)
+
+```
+
+# On how many trials did people qualitatively changed their beliefs  (change their minds)
+
+## go from disbelieving -\> believing/believing -\> disbelieving
+
+```{r}
+colour_scale <- c("purple", "blue", "red")
+
+data %>%
+  filter(!is.na(changed_mind)) %>%
+  group_by(consensus, changed_mind, claim_type) %>%
+  summarise(n_trials = n()) %>%
+  ggplot(aes(x = changed_mind, y = n_trials, fill = consensus, group = consensus))+
+  geom_col(position = "dodge", alpha = .8)+
+  facet_wrap(~claim_type, nrow = 1)+
+  labs(y = "Number of Trials", x = "Changed Mind")+
+  scale_fill_manual(values = colour_scale)+
+  theme_bw()+
+  theme(legend.position = "bottom")
+ggsave(here("analyses/07_Plots/change-mind.png"), width = 7, height = 3)
+
+
+```
+
+People did not change their mind in the majority of trials. Unsurprisingly, people changed their minds most in the consensus trials, and there didn't seem to be much of a difference between independent versus dependent.
+
+```{r}
+d_change_mind <- data %>%
+  filter(!is.na(changed_mind)) %>%
+  group_by(consensus, changed_mind) %>%
+  summarise(n_trials = n()) %>%
+  ungroup() %>%
+  mutate(percent = round((n_trials/sum(n_trials))*100,2))
+
+d_change_mind_claim <- data %>%
+  filter(!is.na(changed_mind)) %>%
+  group_by(claim_type, changed_mind) %>%
+  summarise(n_trials = n()) %>%
+  ungroup() %>%
+  mutate(percent = round((n_trials/sum(n_trials))*100,2))
+
+d_change_mind
+sum(d_change_mind$percent[d_change_mind$changed_mind == TRUE])
+sum(d_change_mind$percent[d_change_mind$changed_mind == TRUE & d_change_mind$consensus != "contested"])
+```
+

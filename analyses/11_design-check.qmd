@@ -1,0 +1,141 @@
+---
+title: "Design Check"
+author: "Anonymised for Peer Review"
+format: pdf
+toc: true
+editor: visual
+---
+
+In this supplementary material, we present two follow up analyses that test the efficacy of our experimental and analytic designs. First, we present an analysis investigating whether people were equally as persuaded by a consensus arguing in favor of the claim compared to against it. Secondly, we investigate the possibility of demand effects induced by our within subjects design, by seeing whether our results differed between the first and last trials fo the experiment.
+
+```{r}
+library(here)
+library(tidyverse)
+
+# Load data
+load(here("data/clean/all_data_clean.Rdata"))
+data <- all_data[[1]] 
+```
+
+# Are people equally persuaded by claims arguing for (pro) and against (con)?
+
+Previous studies using our paradigm found that people were more or less equally convinced when posts argued for versus against the claim. For this reason, to preserve power in the individual level analyses, we transformed the direction of belief changes on trials arguing against the claim rather than adding argument direction as a predictor. But was this a safe assumption? It's possible that the claim type X consensus interaction might only hold for tweets arguing a certain direction.
+
+```{r}
+data_raw_update <- data %>%
+    filter(consensus != "contested") %>%
+    mutate(update_raw = post-pre)
+
+
+mean_updates_procon <- data_raw_update  %>%
+  group_by(claim_type, consensus, side_A) %>%
+  summarise(mean_update = mean(update_raw),
+            se_update = sd(update_raw) / sqrt(n()),
+                        n_obs = n()
+  )
+
+colour_scale <- c("darkblue", "red")
+
+mean_updates_procon %>% 
+  ggplot(aes(x = side_A, y = mean_update, fill = consensus)) + 
+  geom_col(position = "dodge", colour = "black", size = 0.2, alpha = .6) +
+  geom_errorbar(aes(ymin = mean_update - se_update, ymax = mean_update + se_update), 
+                position = position_dodge(.9), width = 0.2) +
+  geom_jitter(data = data_raw_update, aes(y = update_raw, colour = consensus, group = consensus),
+            position = position_jitterdodge(dodge.width = .9, jitter.width = .2), alpha = 0.1) +
+  ylim(-40, 69) +
+  labs(title = "",
+       x = "Claim Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_bw()+
+  facet_wrap(~claim_type)+
+  theme(legend.position = "top") +
+  labs(colour = "Trial Type", fill = "Trial Type")+
+  scale_color_manual(values = colour_scale) + 
+  scale_fill_manual(values = colour_scale)  
+```
+
+Although people seemed to be generally more convinced by posts arguing against the claim, the trend whereby a concensus was more convincing when the claim was more knowable appears to hold. Additionally, the difference between independent and dependent conditions appears to remain similar for pro and con.
+
+# Do the result remain when we only look at the first trial?
+
+Due to the nature of within subjects design, it is possible that the results we observed were due to demand effects. One way to explore this possibility is to see whether our results hold on the first trial, before thy have seen any trials from other conditions. It will also be informative to look at the last trial, to see whether there appears to be any systematic changes from beginning to end.
+
+The main limitation of this approach is that it substantially limits statistical power. Consequently, we did not perform any statistical analyses, as any null results would likely be due to a lack of power. However, we can see whether the same qualitative trends emerged by plotting the primary group level results. The first plot below compares the first and last trials of session 1 and 2 for the main manipulation that is at risk of demand effects: consensus. The numbers on the plot indicate the number of observations in each condition, since this will be informative for estimating the reliability of any trends.
+
+```{r}
+colour_scale <- c("purple", "darkblue", "red")
+facet_labels <- labeller(
+  index = c("0" = "First Trial", "29" = "Last Trial"),
+  session_number = c("1" = "Session 1", "2" = "Session 2")
+)
+
+data %>%
+  filter(index %in% c(0,29)) %>%
+  group_by(index, consensus, session_number) %>%
+  summarise(mean_update = mean(update),
+    se_update = sd(update) / sqrt(n()), n = n()
+) %>%  
+  ggplot(aes(x = consensus, y = mean_update, fill = consensus)) +
+  geom_col(
+    position = "dodge",
+    colour = "black",
+    size = 0.2,
+    alpha = .6
+  ) +
+  geom_errorbar(
+    aes(ymin = mean_update - se_update, ymax = mean_update + se_update),
+    position = position_dodge(.9),
+    width = 0.2
+  ) +
+  geom_text(aes(label = n),  position = position_dodge(width = 0.9),     vjust = -3,
+)+
+facet_grid(session_number ~ index, labeller =  facet_labels)+
+  ylim(-40, 69) +
+  labs(title = "",
+       x = "Claim Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  labs(colour = "Trial Type", fill = "Trial Type") +
+  scale_color_manual(values = colour_scale) +
+  scale_fill_manual(values = colour_scale)
+```
+
+The plot above shows that our group level results of consensus appear to remain constant in both the first and last trial, for sessions 1 and 2 and match what we found in the full analyses. The number of observations in each group is reasonably consistent, with sufficient n in each group to make it unlikely that any extreme responses would have effected the results too much.
+
+Though it is less likely that these results would be effected by demand effects, it is also worth examining whether the claim type finding holds.
+
+```{r}
+data %>%
+  filter(index %in% c(0,29)) %>%
+  group_by(consensus, claim_type, session_number, index) %>%
+  summarise(mean_update = mean(update),
+    se_update = sd(update) / sqrt(n()), n = n()
+)  %>%
+ggplot(aes(x = claim_type, y = mean_update, fill = consensus)) +
+  geom_col(
+    position = "dodge",
+    colour = "black",
+    size = 0.2,
+    alpha = .6
+  ) +
+  geom_errorbar(
+    aes(ymin = mean_update - se_update, ymax = mean_update + se_update),
+    position = position_dodge(.9),
+    width = 0.2
+  ) +
+  geom_text(aes(label = n),  position = position_dodge(width = 0.9),     vjust = -2,
+)+
+  ylim(-40, 69) +
+  labs(title = "",
+       x = "Claim Type",
+       y = "Mean Update (Post - Prior)") +
+  theme_bw() +
+  theme(legend.position = "top", axis.text.x = element_text(angle = 20, vjust = .6, size = 7)) +
+  labs(colour = "Trial Type", fill = "Trial Type") +
+  scale_color_manual(values = colour_scale) +
+  scale_fill_manual(values = colour_scale)  
+```
+
+The plot above shows more variability in the differences between consensus conditions, but also that the number of responses in each cell is much smaller and often quite imbalanced, making it difficult to interpret trends with any certainty. However it does appear that in general, there is a larger difference between an independence consensus and no consensus in the more "knowable" conditions, supporting the conclusion from our full analyses.
