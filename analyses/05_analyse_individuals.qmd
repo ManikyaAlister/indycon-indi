@@ -270,6 +270,8 @@ It is useful to know whether people who were labeled as preferring an independen
 # cor(alt_subs$delta_s1, alt_subs$delta_s2)
 ```
 
+cor_all
+
 ```{r}
 load(here("data/derived/model_comparison_by_session.Rdata"))
 
@@ -302,7 +304,7 @@ cor_alt
 
 ```
 
-The correlation appears to suggest reasonably consistent individual differences. Among participants who were labelled as not being best fit by the null model, there was a strong correlation between session 1 and session 2 ( 0.56 ). We would not expect there to be any correlation for participants best fit by the null mode, which there did not appear to be.
+The correlation appears to suggest reasonably consistent individual differences. Among participants who were labelled as not being best fit by the null model, there was a strong correlation between session 1 and session 2 (0.56). We would not expect there to be any correlation for participants best fit by the null model, which there did not appear to be, as evidence by the very small, non-significant correlation (0.19) when including all participants and the blue line in the plot above.
 
 It may also be interesting to know what the correlation looks like when we include participants who were labelled as being best fit by the alternative model in either session 1 or session 2, as well as overall.
 
@@ -331,7 +333,7 @@ cor(session_estimates_at_least_one$consensus_estimate_1, session_estimates_at_le
 
 ```
 
-The correlation is much smaller, but II don't think this is particularly informative as to the overall quality of our analysis/consistency of the results. If participants were labelled as being best described by the alternative model in only 1 session but not overall, this actually means that our analysis is doing a good job only classifying people who are consistently showing a particular behavior across the two sessions. It does tell us that having half the number of trials makes the analysis misleading because it can identify people as being best fit by the alternative model even when their results aren't consistent across sessions, which further justifies our sample size, but I do not think the low correlation suggests are results are inconsistent from session 1 to session 2.
+The correlation is much smaller, but this is not particularly informative as to the overall quality of our analysis/consistency of the results. If participants were labelled as being best described by the alternative model in only 1 session but not overall, this actually means that our analysis is doing a good job only classifying people who are consistently showing a particular behavior across the two sessions. It does tell us that having half the number of trials makes the analysis misleading because it can identify people as being best fit by the alternative model even when their results aren't consistent across sessions, which further justifies our sample size, but I do not think the low correlation suggests are results are inconsistent from session 1 to session 2.
 
 # What strategy did people *say* they used?
 

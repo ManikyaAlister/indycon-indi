@@ -37,10 +37,6 @@ for (remove in conditions_to_remove){
   filtered_data <- data[data[,"consensus"] != remove,]
    if (model == "group-prior-consensusXclaim-certainty"){
      output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + pre_certainty + consensus * claim_type, data = filtered_data)
-   }  else if (model == "group-prior-consensusXclaim-stanceclaim"){
-     output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + original_stance_claim + consensus * claim_type, data = filtered_data)
-   } else if (model == "group-prior-consensusXclaim-certainty-stanceclaim"){
-     output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + original_stance_claim + pre_certainty + consensus * claim_type, data = filtered_data)
    } else if (model == "group-prior-consensusXclaimXsource"){
      output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus * claim_type * source, data = filtered_data)
    } else if (model == "group-prior-consensus*age"){
@@ -59,10 +55,7 @@ for (remove in conditions_to_remove){
      output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus * university_education, data = filtered_data)
    } else if (model == "group-prior-consensus*socmedprop") {
      output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus * socmed_proportionate, data = filtered_data)
-   } else if (model == "changed-mind") {
-     output <- brm(changed_mind ~ pre_certainty + consensus * claim_type, family = bernoulli(), data = filtered_data, cores = parallel::detectCores()/2)
-   }
-  
+   } 
   save(output, model, remove, file = here(paste0("analyses/02_output/",model,"-rm-",remove,".Rdata")))
 }
     

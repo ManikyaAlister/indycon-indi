@@ -2,6 +2,9 @@
 title: "Design Check"
 author: "Anonymised for Peer Review"
 format: pdf
+echo: false
+message: false
+warning: false
 toc: true
 editor: visual
 ---
@@ -61,7 +64,7 @@ Although people seemed to be generally more convinced by posts arguing against t
 
 Due to the nature of within subjects design, it is possible that the results we observed were due to demand effects. One way to explore this possibility is to see whether our results hold on the first trial, before thy have seen any trials from other conditions. It will also be informative to look at the last trial, to see whether there appears to be any systematic changes from beginning to end.
 
-The main limitation of this approach is that it substantially limits statistical power. Consequently, we did not perform any statistical analyses, as any null results would likely be due to a lack of power. However, we can see whether the same qualitative trends emerged by plotting the primary group level results. The first plot below compares the first and last trials of session 1 and 2 for the main manipulation that is at risk of demand effects: consensus. The numbers on the plot indicate the number of observations in each condition, since this will be informative for estimating the reliability of any trends.
+The main limitation of this approach is that it substantially limits statistical power. Consequently, we did not perform any statistical analyses, as any null results would likely be due to a lack of power. However, the same qualitative trends are visible in both the first and last trials as observed in the entire sample. The plot below compares the first and last trials of session 1 and 2, with the numbers on the plot indicating the number of observations in each condition (showing there are sufficient n in each group to make it unlikely that any extreme responses would have affected the results too much). 
 
 ```{r}
 colour_scale <- c("purple", "darkblue", "red")
@@ -93,16 +96,14 @@ data %>%
 facet_grid(session_number ~ index, labeller =  facet_labels)+
   ylim(-40, 69) +
   labs(title = "",
-       x = "Claim Type",
+       x = "Consensus Condition",
        y = "Mean Update (Post - Prior)") +
   theme_bw() +
-  theme(legend.position = "bottom") +
-  labs(colour = "Trial Type", fill = "Trial Type") +
+  theme(legend.position = "none") +
+  labs(colour = "Consensus Condition", fill = "Consensus Condition") +
   scale_color_manual(values = colour_scale) +
   scale_fill_manual(values = colour_scale)
 ```
-
-The plot above shows that our group level results of consensus appear to remain constant in both the first and last trial, for sessions 1 and 2 and match what we found in the full analyses. The number of observations in each group is reasonably consistent, with sufficient n in each group to make it unlikely that any extreme responses would have effected the results too much.
 
 Though it is less likely that these results would be effected by demand effects, it is also worth examining whether the claim type finding holds.
 
@@ -127,6 +128,7 @@ ggplot(aes(x = claim_type, y = mean_update, fill = consensus)) +
   ) +
   geom_text(aes(label = n),  position = position_dodge(width = 0.9),     vjust = -2,
 )+
+  facet_grid(session_number ~ index, labeller =  facet_labels)+
   ylim(-40, 69) +
   labs(title = "",
        x = "Claim Type",

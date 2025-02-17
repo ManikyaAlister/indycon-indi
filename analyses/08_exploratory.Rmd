@@ -41,6 +41,7 @@ d_consensus_only <- data %>%
 ```
 
 
+
 ```{r, include = FALSE}
 demographics <- all_data$demographics
 ```
@@ -124,9 +125,12 @@ merge_data_dem <- merge(data, demographics, by = c("participant"))  %>%
 
 ```
 
+\pagebreak
+# Overview
+
 In this supplementary material we explore whether any of the individual differences in consensus strength may be able to be explained by demographic characteristics. We initially plot each of the relationships of interest, then follow up with a quantitative model comparison using Bayesian linear mixed effects models with interactions between consensus and each respective demographic variable. None of these analyses were preregistered. These analyses are meant for offering <b>speculation</b> only, with the goal of motivating future research to follow up these possible explanations. There are many aspects of the sample and design that make these analyses potentially unreliable, which we detail later.  
 
-Lines in the scatter plots below indicate a linear model fit to the points of the respective color using the geom_smooth function in R with method lm. The shaded area indicates the 95% Confidence Interval. Note that these linear models are not the same models that are fit in the model comparison later.
+Lines in the scatter plots below indicate a linear model fit to the points of the respective color using the geom_smooth function in R with method lm. The shaded area indicates the 95% Confidence Interval. Note that these linear models are not the same models that are fit in the model comparison later. In the bar plots, error bars are 95% confidence intervals. 
 
 ```{r}
 # Define a function for plotting a basic grouped bar plot with optional ordering
@@ -233,24 +237,26 @@ summarise(mean_update = mean(update),n_obs  = n()/60, sd = sd(update), se = sd /
 plot_education <- plot_grouped_bar(by_education, demographics_education, x_label = "Education", usage_ordering = ed_order)
 plot_education_with_num_obs <- add_num_obs(merge_data_dem, by_education, plot_education, demographics_education, "demographics_education", vjust = -6)
 ```
-Since there is a large number of discrete categories, it makes sense to try and create subgroups so that that it is easier to interpret, and so that there is more power when modelling. One logical sub group is whether or not the participant went to university or not. Although this is not perfect, it could be informative since half of the sources used in the consensus were said to be from a university, so people who have a university education might interpret information from these sources differently. 
+Participants could select a number of options to indicate their level of education. In the current sample, "secondary"  "masters"  "bachelors"  "ged"   "vocational", and "doctorate" were selected. Since there are a large number of discrete categories, it makes sense to try and create subgroups so that it is easier to interpret, and so that there is more power when modeling. One logical sub group is whether or not the participant went to university or not. Although this is not perfect, it could be informative since half of the sources used in the consensus were said to be from a university, so people who have a university education might interpret information from these sources differently. 
 
 ```{r}
 by_uni_ed <-  merge_data_dem %>%
   group_by(consensus, university_education) %>%
 summarise(mean_update = mean(update),n_obs  = n()/60, sd = sd(update), se = sd / sqrt(n()))
 
-plot_uni_education <- plot_grouped_bar(by_uni_ed, university_education, x_label = "University Education")
+plot_uni_education <- plot_grouped_bar(by_uni_ed, university_education, x_label = "University Educated?")
 plot_unieducation_with_num_obs <- add_num_obs(merge_data_dem, by_uni_ed, plot_uni_education, university_education, "university_education", vjust = -6)
 
 
 ```
 
-```{r education, fig.cap="Consensus by education. Numbers indicate the number of participants in each group."}
+```{r education, fig.cap="Consensus by education. Numbers indicate the number of participants in each group. Error bars in this plot (and in all bar plots presented here) represent standard errors."}
 ggarrange(plot_education_with_num_obs, plot_unieducation_with_num_obs, common.legend = TRUE, ncol = TRUE)
 ```
 
-Looking at Figure \@ref(fig:education), there is some variability among each education category (top panel), though this does not appear to be obviously related to the number of years of education, and the sample szes are quite inconsistent. The bottom panel shows that the consensus effects appear to be equivalent regardless of university education. 
+Looking at Figure \@ref(fig:education), there is some variability among each education category (top panel), though this does not appear to be obviously related to the number of years of education, and the sample sizes are quite inconsistent. The bottom panel shows that the consensus effects appeared to be equivalent regardless of university education. 
+
+
 
 \pagebreak
 
@@ -331,9 +337,10 @@ legend = "bottom",
 ncol = 1)
 ```
 
-Figure \@ref(fig:facebook-twitter) shows belief updating in each consensus condition as a function of how often participants reported using Facebook and Twitter/X respectively. One observation is that participants who used social media less appeared to have a stronger preference for independence compared to dependence. One problem that arises for any further analysis is that while these are technically categorical data, they, in theory, map onto a numeric value of how often participants use each platform each year. If we can transform these categories into numeric estimates of their social media use we can 1) aggregate both Facebook and Twitter/X into a single social media variable and 2) assess whether there is a linear relationship between how often people use social media and the extent to which they are persuaded by different kinds of consensus. 
+Figure \@ref(fig:facebook-twitter)  shows belief updating in each consensus condition as a function of how often participants reported using Facebook and Twitter/X respectively. One observation is that participants who used social media less appeared to have a stronger preference for independence compared to dependence. One problem that arises for any further analysis is that while these are technically categorical data, they, in theory, map onto a numeric value of how often participants use each platform each year. If we can transform these categories into numeric estimates of their social media use we can 1) aggregate both Facebook and Twitter/X into a single social media variable and 2) assess whether there is a linear relationship between how often people use social media and the extent to which they are persuaded by different kinds of consensus. 
 
 The approach that we took was to create a transformed "Proportionate Social Media" variable, where we translated each category into a rough estimate of how much they use each social media platform every year. This is extremely noisy, but may provide some insight on the relationship between social media use and consensus effects. Specifically, we translate the scale such that daily = 365, weekly = 52, monthly = 12, rarely = 1, and never = 0. We then aggregated the two social medias such that, for example, if a participant selected daily for both, their proportionate social media score would be 730. 
+
 
 ```{r}
 checkRelationship = function(data = merge_data_dem, rm_conds = c("dependent", "contested"), variable, var_label){
@@ -357,7 +364,8 @@ checkRelationship = function(data = merge_data_dem, rm_conds = c("dependent", "c
     geom_smooth(method = "lm", aes(fill = consensus))+
     scale_colour_manual(values = colour_scale)+
     scale_fill_manual(values = colour_scale)+
-    theme_bw()
+    theme_bw()+
+    theme(axis.title = element_text(size = 10))
   }
   
 combined_plot <- ggarrange(plotlist = plot_list, legend = "bottom")  
@@ -373,8 +381,7 @@ combined_plot
 checkRelationship(variable = "socmed_proportionate", var_label = "Proportionate Social Media Use")
 ```
 
-Figure \@ref(fig:socmed) shows that there is a small relationship between social media use and consensus independence, such that people who use social media more to be more persuaded by a consensus. The right hand panel shows that there was also a relationship between social media use and the difference in belief in an independent consensus versus dependent consensus, such that people who use social media less tended to be more persuaded by independence relative to dependence. 
-
+Figure \@ref(fig:socmed) shows that there is a small relationship between social media use and consensus independence, such that people who used social media more often were more persuaded by a consensus. The right hand panel shows that there was also a relationship between social media use and the difference in belief in an independent consensus versus dependent consensus, such that people who use social media less tended to be more persuaded by independence relative to dependence. 
 
 
 # Political Identity
@@ -393,8 +400,7 @@ plot_politics_with_num_obs
 
 ```
 
-Figure \@ref(fig:politics) shows consensus effects as a function of all of the political identities selected in our study. Let's try to break it down into some more informative categories. For example, whether the identity was associated with the Left, Right, or Middle. 
-
+Figure \@ref(fig:politics)  shows consensus effects as a function of all of the political identities selected in our study. Let’s try to break it down into some more informative categories. For example, whether the identity was associated with the Left, Right, or Middle.
 \pagebreak
 
 ## Left, centre, right
@@ -420,29 +426,30 @@ Figure \@ref(fig:political-dir) shows that participants who identified with the 
 d_pol_scale <- merge_data_dem %>%
   filter(!demographics_politics %in% c("anarch", "soc"))
 
-checkRelationship(data = d_pol_scale, variable = "political_scale", var_label = "Political Scale")
+checkRelationship(data = d_pol_scale, variable = "political_scale", var_label = "Political Scale (Strong Left to Strong Right)")
 ```
 
-Most of the political identities that were selected can be transformed to a linear scale of strong left (-3), moderate left (-2), slight left (-2), middle (0), slight conservative (1), moderate conservative (2),  strong conservative (3). We removed the two participants who did not fit on this scale (as they selected “anarchist” and “socialist”). 
+Most of the political identities that were selected can be transformed to a linear scale of strong left (-3), moderate left (-2), slight left (-2), middle (0), slight conservative (1), moderate conservative (2), strong conservative (3). We removed the two participants who did not fit on this scale (as they selected “anarchist”and “socialist”).
 
-The left side of Figure \@ref(fig:political-scale) shows that people tended to be slightly less convinced by a contested consensus as they identified more strongly with the right. Further, participants who more strongly associated with the Left tended to show a greaer preference for independence compared to dependence. However, there was substantial uncertainty, with lots of overlap between the confidence intervals (shaded area) of the linear models (lines). Figure \@ref(fig:political-strength) shows no obvious relationship between political identity and a standard consensus effect (left), however participants with stronger political affiliations tended to have a stronger preference for independence compared to dependence (right). Once again though, this difference was very noisy, with high overlap between the 95% confidence intervals. 
+The left side of Figure \@ref(fig:political-scale) shows that people tended to be slightly less convinced by a contested consensus as they identified more strongly with the Right. The right side of the figure shows that participants who more strongly associated with the Left tended to show a greater preference for independence compared to dependence. However, there was substantial uncertainty, with lots of overlap between the confidence intervals (shaded area) of the linear models (lines). 
 
 \pagebreak
 
 ## Political Strength
 
-Another way we can examine political affiliation is in the absolute strength of political identification, where those who identified with the Center were coded as 0, and those who identified strongly with wither the Left or the Right were coded as 3. 
+Another way we can examine political aﬀiliation is in the absolute strength of political identification, where those who identified with the Center were coded as 0, and those who identified strongly with either the Left or the Right were coded as 3.
 
 ```{r political-strength, fig.cap="Consensus by political strength."}
 checkRelationship(data = d_pol_scale, variable = "political_strength", var_label = "Political Strength (Centre to Strong)")
 ```
-
+ 
+ Figure \@ref(fig:political-strength) shows no obvious relationship between political strength and a standard consensus effect (left), however participants with stronger political aﬀiliations tended to have a stronger preference for independence compared to dependence (right). Once again though, this difference was very noisy, with high overlap between the 95% confidence intervals.
 
 \pagebreak
 
 # Age
 
-It is plausible that people might interact differently with a consensus presented in an online environment based on their age. The right side of Figure \@ref(fig: age) shows that there is unlikely to be an interaction between age and the standard consensus effect. The left side, however, suggests that older participants showed a larger preference for an independent consensus compared to a dependent consensus. However, as with all of the independent vs. dependent comparisons so far, the results appear highly uncertain. 
+It is plausible that people might interact differently with a consensus presented in an online environment based on their age. The right side of Figure \@ref(fig: age) shows that there is unlikely to be an interaction between age and the standard consensus effect. The right side, however, suggests that older participants showed a larger preference for an independent consensus compared to a dependent consensus. However, as with all of the independent vs. dependent comparisons so far, the results appear highly uncertain.
 
 ```{r age, fig.cap= "Consensus by Age."}
 checkRelationship(variable = "demographics_age", var_label = "age")
@@ -450,23 +457,24 @@ checkRelationship(variable = "demographics_age", var_label = "age")
 
 
 ## Summary of qualitative analyses
-In general, while we cannot make specific conclusions about whether any of these demographic variables are underlying individual variation, these plots suggest that the independent vs. dependent comparison was more likely to vary based on demographic characteristics. This makes sense, given that our main analyses found that there was more individual variation for this comparison. In the next comparison, we perform a more rigorous quantitative test of the relationship between these demographic variables and consensus effects.  
+In general, while we cannot make specific conclusions about whether any of these demographic variables underlie individual variation, these plots suggest that the independent vs. dependent comparison may vary based on demographic characteristics. This makes sense, given that our main analyses found that there was more individual variation for this comparison than the consensus vs no consensus one. In the next comparison, we perform a more rigorous quantitative test of the relationship between these demographic variables and consensus effects.
 
 \pagebreak
 
 # Model Comparison
 
-Our primary quantitative analysis was a comparison of 6 additional Bayesian mixed effects models with the same structure as our main group level analyses, including random intercepts for each subject. These models all included the same outcome variable (beliefs after seeing the tweets, “pre”), as well as the predictor of their prior belief in the claim, (“pre”), and an interaction with the consensus condition (consensus). As is in the main analyses, we split the data into our two comparisons of interest; contested vs. independent and dependent vs. independent, running all of the models separately for each comparison. We have detailed these analyses in the supplementary materials, but we will also describe the analyses and their results here. The demographic variables that we analyzed were: 
+Our primary quantitative analysis was a comparison of six additional Bayesian mixed effects models with the same structure as our main group level analyses, including random intercepts for each subject. One reason why these analyses are more rigorous than the lines of best fit drawn in the plots above is that they consider all of the trials in the experiment (instead of just the means).  These models all included the same outcome variable (beliefs after seeing the tweets), as well as the predictor of their prior belief in the claim, (“pre”), and an interaction with the consensus condition (consensus). As is in the main analyses, we split the data into our two comparisons of interest; contested vs. independent and dependent vs. independent, running all of the models separately for each comparison. We have detailed these analyses in the supplementary materials, but we will also describe the analyses and their results here. The demographic variables that we analyzed were: 
 
 - Age: See see Figure \@ref(fig:age). Numeric age of participants. 
 - Political group: See Figure \@ref(fig:political-group). Whether the participant selected a political identity aligned with the Left (Slight Left, Moderate Left, Strong Left, Socialist, Anarchist) , Center, or Right (slight right, moderate right, strong right). It is important to mention that our sample was not balanced, and there were substantially more people identifying with the Left compared to the Right and Middle. 
 - Political scale: See Figure \@ref(fig:political-scale) Most of the political identities that were selected can be transformed to a linear scale of strong left (-3), moderate left (-2), slight left (-2), middle (0), slight conservative (1), moderate conservative (2),  strong conservative (3). We removed the two participants who did not fit on this scale (as they selected “anarchist” and “socialist”). 
 - Political strength: See Figure \@ref(fig:political-scale). Same as political scale, but transformed so that it is the absolute value, therefore on a scale from 0 (no right/left political preference) to 3 (strong), regardless of direction or affiliation. 
 - Education: See bottom panel of Figure \@ref(fig:education). Participants could select a number of options to indicate their level of education. In the current sample, "secondary"  "masters"  "bachelors"  "ged"   "vocational", and "doctorate" were selected. In its raw form, these options were not particularly informative, so we chose to divide participants into either university educated (bachelors, masters, or doctorate), or not (secondary, ged, or vocational). We thought that this would be an informative distinction since university educated students would be more likely to have had training interpreting scientific or other scholarly sources, so the primary sources in the consensus (universities and news companies) may have a different effect on their belief updating.  
-- Social Media: See Figure \@ref(fig:socmed). Estimate of how much each participant used social media each year based on their response, where daily = 365, weekly = 52, monthly = 12, rarely = 1, and never = 0. We then aggregated the scores from both social media platforms to create a combined social media variable. This is, of course, not particularly precise, but may be able to pick up on some associations between social media use and sensitivity to consensus effects. 
+- Social Media: See Figure \@ref(fig:socmed). An estimate of how much each participant used social media each year based on their response, where daily = 365, weekly = 52, monthly = 12, rarely = 1, and never = 0. We then aggregated the scores from both social media platforms to create a combined social media variable. This is, of course, not particularly precise, but may be able to pick up on some associations between social media use and sensitivity to consensus effects. 
 
 We then performed a model comparison to determine whether the models including <demographic variable> X consensus interactions outperformed the previously best performing model reported in the main text. In other words, we were interested in whether including each respective demographic variable improved the model performance over and above the models that only included prior, claim type, and consensus.
 
+\pagebreak
 
 
 ```{r}
@@ -505,7 +513,7 @@ formatModelComparison(mc_rm_dependent)
 
 ```
 
-The only demographic model that performed better than a model including no demographics was the model that included a `consensus` $\times$ `political strength` interaction. Indeed, this model preformed better than the previously best performing model, which was the  `consensus` $\times$ `claim type` model.
+These model comparisons showed that the only models that performed better than the originally best performing models (consensus X claim type for independent vs. contested and consensus + claim type for independent vs. dependent) were those that included interactions with political scale and political strength. These results suggest that the extent to which people identified strongly with the left vs. right, and the absolute strength of political alignment may each contribute to the extent to which people were persuaded by an independent consensus trials relative to contested trials. To follow up the performance of these models, we inspected their coefficients to identify the strength and direction of any effects of the political variables. 
 
 ```{r}
 formatOutput = function(output, demographic_variable) {
@@ -530,7 +538,7 @@ formatOutput = function(output, demographic_variable) {
 ```
 
 
-## Political Scale (Strong Left to Strong Right)
+## Consensus X Political Scale (Strong Left to Strong Right)
 
 ```{r}
 load(here("analyses/02_output/group-prior-consensus*politcalscale-rm-dependent.Rdata"))
@@ -539,12 +547,16 @@ formatOutput(output, "Political Scale")
 
 ```
 
+The positive consensus X political scale interaction suggests that the difference between independent trials and contested trials increased the more strongly people identified with being conservative. In other words, people were more persuaded by a standard consensus if they were more conservative. Looking at the plot, this interaction seemed to be driven by conservatives having larger reductions in belief after contested trials, rather than being more persuaded by independent trials. However, it is important to note that although model comparison suggested that this was the best model, the interaction itself had a small effect size (estimate: .45) and was highly uncertain, with the 89% credible intervals overlapping substantially with zero. The basic trend underlying the interaction is shown in Figure 6, but note that the line of best fit and uncertainty metric are derived using different methods. 
+
 ## Political Strength (Centre to Strong)
 
 ```{r}
 load(here("analyses/02_output/group-prior-consensus*politcalstrength-rm-dependent.Rdata"))
 formatOutput(output, "Political Strength")
 ```
+
+The negative Consensus X Political Strength interaction suggests that people with stronger political beliefs were less sensitive to consensus. However, the effect size was tiny (as illustrated by the near parallel lines in the plot and an estimate of -0.03) and highly uncertain. 
 
 ## Indpendent vs. dependent
 
@@ -559,14 +571,15 @@ formatModelComparison(mc_rm_contested)
 ```
 
 
-\pagebreak
-
-### Political Scale (Storng Left to Strong Right)
+### Political Scale (Strong Left to Strong Right)
 
 ```{r}
 load(here("analyses/02_output/group-prior-consensus*politcalscale-rm-contested.Rdata"))
 formatOutput(output, "Political Scale")
 ```
+
+The negative Consensus X Political Scale interaction suggests that the more left leaning the participants were, the less persuaded they were by a dependent consensus on average. This effect was around the same size, with similarly high uncertainty, as the contested vs. independence comparison. Interestingly however, the main effect of independence reduced and became much more uncertain compared to the consensus + claim type model, suggesting that the interaction explained much of the variance that was previously associated with the main effect of consensus. 
+
 
 ### Political Strength (Centre to Strong)
 
@@ -574,3 +587,12 @@ formatOutput(output, "Political Scale")
 load(here("analyses/02_output/group-prior-consensus*politcalstrength-rm-contested.Rdata"))
 formatOutput(output, "Political Strength")
 ```
+
+The Consensus X Political Strength interaction suggested that people who had stronger political identity (regardless of whether they identified more with the Left or the Right), showed a stronger preference for an independent consensus compared to a dependent consensus. Once again however, this effect was small and unreliable. 
+
+## Summary of Model Comparison
+
+Our model comparisons suggest that two political variables were the most likely to be underlying individual variation in consensus effects: absolute strength of political identification and direction of political identification. However, the effect sizes on the coefficients were very small and highly uncertain (which makes sense because our study was not set up to detect these differences), indicating a high probability that the true value could be zero and therefore, no credible statistical relationship. Taken together, despite the fact these political variables performed well in the model comparison, statistical evidence was still weak and highly uncertain, meaning we are unable to conclude that any of these variables were driving individual differences– especially when considering issues with our design which we outline in the next paragraph.
+
+There are a number of additional reasons why these results should be interpreted with substantial caution. First, none of them were pre-registered. Second, we did not collect a politically balanced sample, meaning that there were far more people who identified to the Left of the political spectrum compared to the Right. Indeed, there was only one participant who identified strongly with the Right, compared to 24 who identified strongly with the Left. Although the high number of trials per participant means that the estimates for that one far right participant should be reasonably reliable, we have clearly not sampled a representative range of conservative participants, so inferences should not be made about the whole political group. Indeed, looking at the plots it is clear that there is a high degree of variability within the Left leaning groups with a larger sample size, suggesting that had we recruited a smaller sample, there is a reasonable possibility that we may have observed similar results as the conservative sample simply by chance. Third, many of these analyses relied on transforming the original response, such as categorizing the education variable, which can reduce the sensitivity of these analyses as well as reflect a high researcher degree of freedom. Therefore, null results could simply be because of how the data was collected and transformed, instead of because no relationship actually exists. These results could be used to motivate future research by outlining possible explanations for these effects, but they should be interpreted with a high degree of caution and not be used to draw any generalizing  conclusions about any demographic subgroups. For these reasons, we have not included these analyses in the main text. We include them in the Supplementary Materials in the hope that these results provide inspiration for future research that can test these associations more rigorously. 
+
