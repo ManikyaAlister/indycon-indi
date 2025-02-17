@@ -9,12 +9,13 @@ format:
 toc: true
 number-sections: true
 bibliography: references.bib
-jupyter: python3
 ---
 
 # Was the original stance against the claim?
 
 ```{r}
+library(tidyverse)
+library(here)
 load(here("data/clean/all_data_clean.Rdata"))
 data <- all_data$data
 ```
@@ -80,12 +81,13 @@ colour_scale <- c("purple", "blue", "red")
 
 data %>%
   filter(!is.na(changed_mind)) %>%
+  mutate(changed_mind = ifelse(changed_mind == T, "Yes", "No"))%>%
   group_by(consensus, changed_mind, claim_type) %>%
   summarise(n_trials = n()) %>%
   ggplot(aes(x = changed_mind, y = n_trials, fill = consensus, group = consensus))+
   geom_col(position = "dodge", alpha = .8)+
   facet_wrap(~claim_type, nrow = 1)+
-  labs(y = "Number of Trials", x = "Changed Mind")+
+  labs(y = "Number of Trials", x = "Changed Mind?")+
   scale_fill_manual(values = colour_scale)+
   theme_bw()+
   theme(legend.position = "bottom")

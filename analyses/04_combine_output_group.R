@@ -14,8 +14,6 @@ original_models <-
 follow_up_models <-
   c(
     "group-prior-consensusXclaim-certainty",
-    "group-prior-consensusXclaim-stanceclaim",
-    "group-prior-consensusXclaim-certainty-stanceclaim",
     "group-prior-consensusXclaimXsource")
 
 demographic_models <- c(

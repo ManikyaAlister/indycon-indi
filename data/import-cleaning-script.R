@@ -27,7 +27,7 @@ claim_info <- data.frame(
   ),
   type = c(
     rep("Unknowable Expert", 15), rep("Unknowable Preference", 15), 
-    rep("Knowable Facts", 15), rep("Knowable Eye witness", 15)
+    rep("Knowable Facts", 15), rep("Knowable Eyewitness", 15)
   )
 )
 
