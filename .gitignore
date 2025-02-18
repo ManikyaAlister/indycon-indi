@@ -71,3 +71,6 @@ Data/raw/non-anonymised/*
 analyses/*.log
 analyses/*.tex
 analyses/*_files/*
+
+# keynotes
+*.key
