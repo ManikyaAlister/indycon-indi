@@ -1,15 +1,24 @@
 This folder contains all of the scripts that were used to run the Bayesian linear models and all follow up analyses. 
 
-For efficiency I ran the individual-level models in parallel by running each participant and model combination as seperate "jobs" (defined in job_array.txt). If I didn't do this, it would take much longer to run, since BRMS models can be pretty slow, and I have a lot of models and participants. For people not familiar with this method though, this could be confusing (sorry!). 
+For efficiency I ran the individual-level models in parallel by running each participant and model combination as seperate "jobs" (defined in job_array.txt) on my university’s HPC. If I didn't do this, it would take much longer to run, since BRMS models can be pretty slow, and I have a lot of models and participants. For people not familiar with this method though, this could be confusing (sorry!). **If you wish to run the individual-level models locally yourself**, I have made some shell scripts that will loop through each participant and fit the models to data sequentially: 
 
-To make things further complicated (but much faster), I send these models to my university's High Performance Computer (HPC), as it allows me to run hundreds of jobs in parallel, which I wouldn't be able to do locally. This means that my model scripts probably aren't going to run on your machine in their current form unless you have access to an HPC or you can run them using your terminal or a shell script. If you cannot do these, you will need to adjust the appropriate scripts so that the participant can be accessed. One simple way, would be wrapping each modelling script within a "for" loop. Generally though, you will need at lease some base level understanding of running scripts from the terminal, or enough R knowledge to adjust the scripts, to run the models from scratch. If you do not need to run the models from scratch, all of the output from the models is available from https://osf.io/mtuyv/, so you can download the output from there directly, and copy it into the "output" folder. Once you have done that, all sccripts from 03 onwards should work, so long as you have all of the necessary packages installed. 
+`01_models/run-indi-1.sh`: Fits the null model to each of the 78 participants. 
+`01_models/run-indi-2.sh`: Fits the alternative model to each of the 78 participants. 
 
-Many of these files are quarto/rmarkdown documents that have rendered PDFs that make reading the output easy (though the PDFs don't include code). 
+To run them, run the lines: `sh analyses/01_models/run-indi-1.sh` (for null model) and `sh analyses/01_models/run-indi-2.sh` for alternative model in the *terminal*. 
+
+Please note that running the individual models sequentially **may take a long time**. On my Mac Book Air M2 it took roughly 1.5 minutes per subject/model, so it could take upwards of ~200 minutes to run both models for all subjects sequentially. 
+
+**To run the group-level models** reported in the manuscript, run 01_models/run_group_models_local.R. This script uses the Parallel function in R to run the analyses on multiple cores on your computer. It means that you won’t see any output in your console as things are running, so you may need to just be patient until you wait for it to finish (even if nothing seems like it’s happening, it probably is). 
+
+If you’re running modelling scripts and you get an error that looks like “/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: complex: No such file or directory” just ignore it and let it keep running., it does not effect anything as far as I can tell. 
+
+Once the models are run (or if you use the output available on the OSF) most of the files that analyse the output of the models are quarto/rmarkdown documents that have rendered PDFs that make reading the output easy (though the PDFs don't include code). 
 
 The general file structure is as follows: 
 
 - ``00_HPC_scripts``: These are scripts that allow me to run jobs from my university's high performance computing cluster. 
-- ``01_models``: This folder contains the R scripts that run the BRMS models. The individual level models will not work in their current form if run directly from Rstudio, since they are set up to run one participant at a time and participant is read from the HPC scripts (as described above). The will work if you run them directly from the terminal (e.g, Rscript <pathtomodelscript> <subject>)
+- ``01_models``: This folder contains the R scripts that run the BRMS models. See above for how to run the group-level and individual-level models.
 - ``02_output``: The raw output of the BRMS models. This folder is mostly empty because the output files are too big to store on github. You can download them directly from https://osf.io/mtuyv/. 
 - ``03_combine_output_individuals``: A script that loads and combines the output of each individual model. 
 - ``04_combine_output_group``: A script that loads and combines the output of each group-level model.

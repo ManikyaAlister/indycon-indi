@@ -1,11 +1,12 @@
 rm(list = ls())
 
 # for HPC, need to define library path. Comment out and just use "here" if running locally
-lib = .libPaths("~/Library/Frameworks/R.framework/Versions/4.1/Resources/library")
-library(here, lib.loc = lib)
+# lib = .libPaths("~/Library/Frameworks/R.framework/Versions/4.1/Resources/library")
+# library(here, lib.loc = lib)
+# library(brms, lib.loc = lib)
+library(here)
+library(brms)
 library(dplyr)
-library(brms, lib.loc = lib)
-
 
 # define model name 
 models <- c("group-prior-consensus*age")
