@@ -1,0 +1,1 @@
+This folder is empty on the github repo because some of the files are very large, so it's not good practice to store them on github. You can find all of the output on the OSF page. 
