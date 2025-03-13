@@ -23,7 +23,7 @@ library(brms)
 ```
 
 ```{r}
-load(here("data/derived/model_comparison.Rdata"))
+load(here("analyses/derived-data/model_comparison.Rdata"))
 load(here("data/clean/all_data_clean.Rdata"))
 data <- all_data[[1]] 
 
@@ -73,7 +73,7 @@ Looking at the plot, though there's a slightly bigger difference between indepen
 
 ```{r}
 # load output 
-load(here("data/derived/broad_group_output_combined.Rdata"))
+load(here("analyses/derived-data/broad_group_output_combined.Rdata"))
 
 ```
 
@@ -202,7 +202,7 @@ Are the qualitative patterns supported statistically?
 
 ```{r}
 # load output 
-load(here("data/derived/group_output_combined.Rdata"))
+load(here("analyses/derived-data/group_output_combined.Rdata"))
 
 model_LOOICs %>%
   filter(model != "group-prior-consensusXclaim-certainty", excluded_condition == "dependent") %>%

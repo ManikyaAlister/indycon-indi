@@ -31,3 +31,5 @@ The general file structure is as follows:
 - ``09_follow_up_individuals``: Supplementary material investigating the reliability of the individual level estimates. 
 - ``10_change-mind-analyses``: Supplementary material investigating how often people changed their mind. 
 - ``11_design-check``: Supplementary material checking that various aspects of our experimental design did not affect our results. 
+- `derived`: Contains various transformations of the clean data generated from the analysis scripts. `Source_data.csv` is output from the experiment code, so cannot be generated here. 
+

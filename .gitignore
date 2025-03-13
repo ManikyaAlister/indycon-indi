@@ -2,9 +2,9 @@
 slurm_output/*
 
 # model output files
-power-simulation/output/*
+#power-simulation/output/*
 analyses/02_output/*
-data/derived/group_output_combined.Rdata
+analyses/derived-data/group_output_combined.Rdata
 
 # History files
 .Rhistory

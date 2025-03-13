@@ -1,10 +1,10 @@
-rm(list = ls())
+
 library(here)
 library(tidyverse)
 # simulate data
-load(here("power-simulation/data/generating_params_adjusted.Rdata"))
-load(here("power-simulation/data/participant_types.Rdata"))
-load(here("data/experiment-3-2022/data.rdata"))
+load(here("power-simulation/data/derived/generating_params_adjusted.Rdata"))
+load(here("power-simulation/data/simulated/participant_types.Rdata"))
+load(here("power-simulation/data/experiment-3-2022/data.rdata"))
 
 
 participants <- participant_types$full_uid
@@ -73,6 +73,6 @@ for (i in 1:n){
     n_trials <- n_trials_per_cell * n_cells
     sim_data <- as.data.frame(sim_data)
     sim_data$update = as.numeric(sim_data$update)
-    save(sim_data, file = here(paste0("power-simulation/data/p",i,"-",n_trials,"-trials-adjusted.Rdata")))
+    save(sim_data, file = here(paste0("power-simulation/data/simulated/p",i,"-",n_trials,"-trials-adjusted.Rdata")))
   }
 }

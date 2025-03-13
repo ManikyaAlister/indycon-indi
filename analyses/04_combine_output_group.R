@@ -1,4 +1,4 @@
-rm(list = ls())
+
 library(here)
 library(brms)
 
@@ -52,7 +52,7 @@ for ( i in 1:length(model_details[,1])){
 
 model_LOOICs <- cbind(model_details, all_looic, all_se, is_follow_up, is_demographic)
 
-save(all_looic,all_output, model_LOOICs, file = here("data/derived/group_output_combined.Rdata"))
+save(all_looic,all_output, model_LOOICs, file = here("analyses/derived-data/group_output_combined.Rdata"))
 
 
 # for broad claim types
@@ -74,5 +74,5 @@ for ( i in 1:length(model_details_broad[,1])){
 
 model_LOOICs <- cbind(model_details_broad, all_looic)
 
-save(model_LOOICs, file = here("data/derived/broad_group_output_combined.Rdata"))
+save(model_LOOICs, file = here("analyses/derived-data/broad_group_output_combined.Rdata"))
 

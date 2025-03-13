@@ -503,7 +503,7 @@ formatModelComparison = function(mc_data){
 
 ## Independent vs. contested
 ```{r}
-load(here("data/derived/group_output_combined.Rdata"))
+load(here("analyses/derived-data/group_output_combined.Rdata"))
 mc_rm_dependent <- model_LOOICs %>%
   filter(excluded_condition == "dependent", !is_follow_up ) %>% 
   mutate(rank = rank(all_looic)) %>%

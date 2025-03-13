@@ -1,9 +1,9 @@
-rm(list = ls())
+
 lib = .libPaths("~/Library/Frameworks/R.framework/Versions/4.1/Resources/library")
 library(here, lib.loc = lib)
 library(brms, lib.loc = lib)
 
-load(here("power-simulation/data/generating_params_adjusted.Rdata"))
+load(here("power-simulation/data/derived/generating_params_adjusted.Rdata"))
 participants <- unique(generating_params$uid_num)
 n <- length(participants)
 
@@ -29,7 +29,7 @@ print(paste0("Starting participant ", p, ", ", n_trials, " trials"))
 
 # load data set
 load(here(paste0(
-  "power-simulation/data/p", p, "-", n_trials, "-trials-adjusted.Rdata"
+  "power-simulation/data/simulated/p", p, "-", n_trials, "-trials-adjusted.Rdata"
 )))
 
 d <- sim_data

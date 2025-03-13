@@ -1,7 +1,7 @@
 # Import experiment data from google cloud
 # Python3 export_results.py live rectangleworld learn c23 v2 results.json
 
-rm(list = ls())
+
 library(here)
 library(jsonlite)
 library(tidyverse)
@@ -32,7 +32,7 @@ claim_info <- data.frame(
 )
 
 # load source type information
-source_info <- read.csv(here("data/derived/source_data.csv"))
+source_info <- read.csv(here("analyses/derived-data/source_data.csv"))
 
 # Displaying the created data frame
 print(data)

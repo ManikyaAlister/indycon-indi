@@ -15,7 +15,7 @@ bibliography: references.bib
 ```{r}
 library(here)
 library(tidyverse)
-load(here("data/derived/model_comparison.Rdata"))
+load(here("analyses/derived-data/model_comparison.Rdata"))
 load(here("data/clean/all_data_clean.Rdata"))
 data <- all_data[[1]] 
 

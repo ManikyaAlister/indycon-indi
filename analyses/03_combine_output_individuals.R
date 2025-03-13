@@ -1,4 +1,4 @@
-rm(list = ls())
+
 library(here)
 library(tidyverse)
 library(brms)
@@ -103,7 +103,7 @@ model_comparison <- model_output %>%
   mutate(looic_diff = looic_null - looic_alt,
          best_model = ifelse(looic_diff > 0, "Alternative Model", "Null Model"))
 
-save(model_comparison, file = here("data/derived/model_comparison.Rdata"))
+save(model_comparison, file = here("analyses/derived-data/model_comparison.Rdata"))
 
 
 # Look out modelling results by session -----------------------------------
@@ -136,7 +136,7 @@ model_comparison_by_session <- model_output_by_session %>%
   rename("session_number" = excluded_condition)
 
 
-save(model_comparison_by_session, file = here("data/derived/model_comparison_by_session.Rdata"))
+save(model_comparison_by_session, file = here("analyses/derived-data/model_comparison_by_session.Rdata"))
 
 
 
