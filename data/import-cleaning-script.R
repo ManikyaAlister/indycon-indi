@@ -189,7 +189,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete refers t
      mutate(
        broad_claim_type = case_when(
          claim_type == "Unknowable Preference" | claim_type == "Unknowable Expert" ~ "Unknowable",
-         claim_type == "Knowable Facts" | claim_type == "Knowable Eye witness" ~ "Knowable "
+         claim_type == "Knowable Facts" | claim_type == "Knowable Eyewitness" ~ "Knowable "
        )
      )
    
