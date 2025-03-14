@@ -9,3 +9,7 @@ To install all required R packages, type `renv::restore()` into the Rstudio cons
 - The ``data`` folder contains all of the anonymised raw data (in json format), clean data (in .Rdata and .csv formamt), and derived data (various transformations of the clean data). 
 
 - The ``analysis`` folder provides all of the scripts (mainly R, Rmarkdown, or Quarto scripts) used to run the analyses. 
+
+## Requirements
+
+ R 4.2.2 and RTools42 are necessary in order to reproduce these results. 

@@ -1,7 +1,13 @@
+#-- comment if running from HPC (needs hard coded library path) --
+library(here)
+library(brms)
+#-------------
 
-lib = .libPaths("~/Library/Frameworks/R.framework/Versions/4.1/Resources/library")
-library(here, lib.loc = lib)
-library(brms, lib.loc = lib)
+#--  Un-comment below for running on HPC --
+# lib = .libPaths("~/Library/Frameworks/R.framework/Versions/4.1/Resources/library")
+# library(here, lib.loc = lib)
+# library(brms, lib.loc = lib)
+#--------------
 
 load(here("power-simulation/data/derived/generating_params_adjusted.Rdata"))
 participants <- unique(generating_params$uid_num)
@@ -9,9 +15,12 @@ n <- length(participants)
 
 n_cells <- 2
 
-
 # load in arguments defined by job array (participant and trials per cell)
 args <- commandArgs(trailingOnly = TRUE)
+print(args)
+
+# define the number of cores when running the job in the terminal/hpc
+cores = args[3]
 
 # participant (defined by job array)
 p <- as.numeric(args[2])
@@ -43,18 +52,17 @@ n_trials <- length(d$update)
 p_type <-  unique(d$type)
 
 # set up models 
-null <- brm(post ~ prior, data = d)
+null <- brm(post ~ prior, data = d, cores = cores)
 sum_null <- summary(null)
 loo_null <- loo(null)
 
 print(paste0("Null model done"))
 
-alt <- brm(post ~ prior + nSources_A, data = d)
+alt <- brm(post ~ prior + nSources_A, data = d, cores = cores)
 sum_alt <- summary(alt)
 loo_alt <- loo(alt)
 
 print(paste0("Alternative model done"))
-
 
 save(p_type,
      p,

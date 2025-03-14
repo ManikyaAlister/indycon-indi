@@ -2,7 +2,7 @@
 slurm_output/*
 
 # model output files
-#power-simulation/output/*
+power-simulation/output/*
 analyses/02_output/*
 analyses/derived-data/group_output_combined.Rdata
 

@@ -7,7 +7,7 @@ For efficiency I ran the individual-level models in parallel by running each par
 
 To run them, run the lines: `sh analyses/01_models/run-indi-1.sh` (for null model) and `sh analyses/01_models/run-indi-2.sh` for alternative model in the *terminal*. 
 
-Please note that running the individual models sequentially **may take a long time**. On my Mac Book Air M2 it took roughly 1.5 minutes per subject/model, so it could take upwards of ~200 minutes to run both models for all subjects sequentially. 
+Please note that running the individual models sequentially **may take a long time**. On my Mac Book Air M2 it took roughly 1.5 minutes per subject/model, so it could take upwards of ~200 minutes to run both models for all subjects sequentially. **You could make them run faster by including cores=4 to the brm() functions** so that each of the 4 chains run in parallel. 
 
 **To run the group-level models** reported in the manuscript, run 01_models/run_group_models_local.R. This script uses the Parallel function in R to run the analyses on multiple cores on your computer. It means that you won’t see any output in your console as things are running, so you may need to just be patient until you wait for it to finish (even if nothing seems like it’s happening, it probably is). 
 
@@ -18,7 +18,7 @@ Once the models are run (or if you use the output available on the OSF) most of 
 The general file structure is as follows: 
 
 - ``00_HPC_scripts``: These are scripts that allow me to run jobs from my university's high performance computing cluster. 
-- ``01_models``: This folder contains the R scripts that run the BRMS models. See above for how to run the group-level and individual-level models.
+- ``01_models``: This folder contains the R scripts that run the BRMS models. See above for how to run the group-level and individual-level models. 
 - ``02_output``: The raw output of the BRMS models. This folder is mostly empty because the output files are too big to store on github. You can download them directly from https://osf.io/mtuyv/. 
 - ``03_combine_output_individuals``: A script that loads and combines the output of each individual model. 
 - ``04_combine_output_group``: A script that loads and combines the output of each group-level model.

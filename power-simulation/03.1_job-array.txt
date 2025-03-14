@@ -52,12 +52,15 @@ n_data_sets=5
 # Set the participant numbers (make sure the slurm array is set up for the correct model * participant combintation)
 participants=($(seq 1 100))
 
+# define the number of cores to run on the BRMS model (1 unless you define more cpus earlier)
+cores=1
+
 # Calculate the model and participant indices from the job array task ID
 dataset_idx=$(((SLURM_ARRAY_TASK_ID-1) % n_data_sets)) 
 participant_idx=$(((SLURM_ARRAY_TASK_ID-1) / n_data_sets))
 
 # Run the R script with the input and output files and the participant number as a command line argument
-Rscript /data/gpfs/projects/punim1751/indycon-indi/power-simulation/03_modelling-sim-data-adjusted.R ${data_sets[$dataset_idx]} ${participants[$participant_idx]}
+Rscript /data/gpfs/projects/punim1751/indycon-indi/power-simulation/03_modelling-sim-data-adjusted.R ${data_sets[$dataset_idx]} ${participants[$participant_idx]} ${cores}
 
 ##DO NOT ADD/EDIT BEYOND THIS LINE##
 ##Job monitor command to list the resource usage

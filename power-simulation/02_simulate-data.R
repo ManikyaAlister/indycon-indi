@@ -58,9 +58,14 @@ for (i in 1:n){
     prior_sim <- rnorm(max_trials_per_cell, m_prior, sd_prior)
     post_sim <- rnorm(max_trials_per_cell, m_post, sd_post)
     
-    update = c(cell_real$update, update_sim)
+    update <- c(cell_real$update, update_sim)
     prior <- c(cell_real$prior_adjusted, prior_sim)
     post <- c(cell_real$post_adjusted, post_sim)
+    
+    # Ensure nSources_A and type have the same length as update/prior/post
+    n_total <- length(update)  # Get the actual total number of trials
+    nSources_A = rep(as.character(nSources), n_total)
+    type <- rep(as.character(type), n_total)
     
     d_cell <- cbind(p, nSources_A, update, prior, post, type, id)
     all_sim_data <- rbind(all_sim_data, d_cell)
