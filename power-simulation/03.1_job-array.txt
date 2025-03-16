@@ -49,7 +49,7 @@ module load foss/2022a R/4.2.1
 data_sets=(6 9 12 16 20)
 n_data_sets=5
 
-# Set the participant numbers (make sure the slurm array is set up for the correct model * participant combintation)
+# Set the participant numbers (make sure the slurm array is set up for the correct model * participant combination)
 participants=($(seq 1 100))
 
 # define the number of cores to run on the BRMS model (1 unless you define more cpus earlier)
