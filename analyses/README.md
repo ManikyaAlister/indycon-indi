@@ -11,7 +11,7 @@ Please note that running the individual models sequentially **may take a long ti
 
 **To run the group-level models** reported in the manuscript, run 01_models/run_group_models_local.R. This script uses the Parallel function in R to run the analyses on multiple cores on your computer. It means that you won’t see any output in your console as things are running, so you may need to just be patient until you wait for it to finish (even if nothing seems like it’s happening, it probably is). 
 
-If you’re running modelling scripts and you get an error that looks like “/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: complex: No such file or directory” just ignore it and let it keep running., it does not effect anything as far as I can tell. 
+If you're running modelling scripts and you get an error that looks like “/Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/RcppEigen/include/Eigen/Core:96:10: fatal error: complex: No such file or directory” just ignore it and let it keep running., it does not effect anything as far as I can tell. 
 
 Once the models are run (or if you use the output available on the OSF) most of the files that analyse the output of the models are quarto/rmarkdown documents that have rendered PDFs that make reading the output easy (though the PDFs don't include code). 
 

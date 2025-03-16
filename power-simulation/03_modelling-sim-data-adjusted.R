@@ -17,7 +17,6 @@ n_cells <- 2
 
 # load in arguments defined by job array (participant and trials per cell)
 args <- commandArgs(trailingOnly = TRUE)
-print(args)
 
 # define the number of cores when running the job in the terminal/hpc
 cores = args[3]
