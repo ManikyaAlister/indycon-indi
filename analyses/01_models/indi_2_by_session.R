@@ -30,7 +30,7 @@ for (session in sessions) {
   filtered_data <- participant_data[participant_data[,"session_number"] != session,]
   
   # run model
-  output <- brm(post_adjusted ~ pre_adjusted+consensus, data = filtered_data)
+  output <- brm(post_adjusted ~ pre_adjusted+consensus, data = filtered_data, cores = 4)
   
   # save output and other participant info
   save(subject, output, model, remove, session, file = here(paste0("analyses/02_output/P",subject,"-",model,"-rm-",remove,"-session-",session,".Rdata")))

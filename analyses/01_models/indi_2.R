@@ -28,7 +28,7 @@ for (remove in conditions_to_remove) {
   filtered_data <- participant_data[participant_data[,"consensus"] != remove,]
   
   # run model
-  output <- brm(post_adjusted ~ pre_adjusted+consensus, data = filtered_data)
+  output <- brm(post_adjusted ~ pre_adjusted+consensus, data = filtered_data, cores = 4)
   
   # save output and other participant info
   save(subject, output, model, remove, file = here(paste0("analyses/02_output/P",subject,"-",model,"-rm-",remove,".Rdata")))

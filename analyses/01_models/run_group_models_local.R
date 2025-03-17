@@ -19,7 +19,7 @@ data <- all_data[[1]]
 conditions_to_remove <- c("contested", "dependent")
 
 # Determine number of cores
-num_cores <- detectCores() - 2
+num_cores <- min(detectCores() - 2, 4) # Use at most 4 cores. Adjust this if you have a more/less powerful computer.
 
 # Create cluster
 cl <- makeCluster(num_cores) 
@@ -37,14 +37,14 @@ for (remove in conditions_to_remove) {
 filtered_data <- data[data[,"consensus"] != remove,]
 
 if (model == "group-prior"){
-  output <- brm(post_adjusted ~ (1|participant) + pre_adjusted,data = filtered_data)
+  output <- brm(post_adjusted ~ (1|participant) + pre_adjusted,data = filtered_data, iter = 4000)
 } else if (model == "group-prior-consensus"){
-  output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus,data = filtered_data)
+  output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus, data = filtered_data, iter = 4000)
 } else if (model == "group-prior-consensus-claim"){
-  output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus + claim_type, data = filtered_data)
+  output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus + claim_type, data = filtered_data, iter = 4000)
 } else if (model == "group-prior-consensusXclaim") {
-  output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus * claim_type, data = filtered_data)
+  output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus * claim_type, data = filtered_data, iter = 4000)
 }
-save(subject, output, model, remove, file = here(paste0("analyses/02_output/",model,"-rm-",remove,".Rdata")))
+save(output, model, remove, file = here(paste0("analyses/02_output/",model,"-rm-",remove,".Rdata")))
 }
 }

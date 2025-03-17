@@ -164,8 +164,8 @@ load(here("analyses/derived-data/group_output_combined.Rdata"))
 
 ```{r}
 model_LOOICs %>%
-  filter(excluded_condition == "contested" & !is_follow_up) %>%
-    select(-is_follow_up) %>%
+  filter(excluded_condition == "contested" & !is_follow_up & !is_demographic) %>%
+    select(-is_follow_up, -is_demographic) %>%
   mutate(model_rank = rank(all_looic),
          all_looic = round(all_looic),
          all_se = round(all_se))
@@ -175,8 +175,9 @@ model_LOOICs %>%
 
 ```{r}
 model_LOOICs %>%
-  filter(excluded_condition == "dependent" & !is_follow_up) %>%
-  select(-is_follow_up) %>%
+  filter(excluded_condition == "dependent" & !is_follow_up & !is_demographic) %>%
+  select(-is_follow_up,
+         -is_demographic) %>%
     mutate(model_rank = rank(all_looic),
          all_looic = round(all_looic),
          all_se = round(all_se))
