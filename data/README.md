@@ -9,7 +9,6 @@ output:
 
 - `raw`: Contains the raw experiment json data that has had the Prolific IDs removed (see `anonymise-raw-data` for how we did that)
 - `clean`: Contains the cleaned experiment data in long format, where each row pertains to a trial of the experiment. Files are seperated by participant, but there is also a file with all of the data files combined. 
-- `derived`: Contains various transformations of the clean data generated from the `analysis` folder. 
 
 ## Instructions 
 

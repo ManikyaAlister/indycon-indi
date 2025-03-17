@@ -23,7 +23,7 @@ library(brms)
 ```
 
 ```{r}
-load(here("data/derived/model_comparison.Rdata"))
+load(here("analyses/derived-data/model_comparison.Rdata"))
 load(here("data/clean/all_data_clean.Rdata"))
 data <- all_data[[1]] 
 
@@ -73,7 +73,7 @@ Looking at the plot, though there's a slightly bigger difference between indepen
 
 ```{r}
 # load output 
-load(here("data/derived/broad_group_output_combined.Rdata"))
+load(here("analyses/derived-data/broad_group_output_combined.Rdata"))
 
 ```
 
@@ -202,11 +202,11 @@ Are the qualitative patterns supported statistically?
 
 ```{r}
 # load output 
-load(here("data/derived/group_output_combined.Rdata"))
+load(here("analyses/derived-data/group_output_combined.Rdata"))
 
 model_LOOICs %>%
-  filter(model != "group-prior-consensusXclaim-certainty", excluded_condition == "dependent") %>%
-  select(-is_follow_up, -excluded_condition) %>%
+  filter(model != "group-prior-consensusXclaim-certainty", excluded_condition == "dependent", !is_demographic) %>%
+  select(-is_follow_up, -excluded_condition, -is_demographic) %>%
     mutate(model_rank = rank(all_looic),
          all_looic = round(all_looic),
          all_se = round(all_se))
@@ -250,8 +250,8 @@ The plots shown above seemed to suggest the effect of consensus independence onl
 
 ```{r}
 model_LOOICs %>%
-  filter(model != "group-prior-consensusXclaim-certainty", excluded_condition == "contested") %>%
-  select(-is_follow_up, -excluded_condition) %>%
+  filter(model != "group-prior-consensusXclaim-certainty", excluded_condition == "contested", !is_demographic) %>%
+  select(-is_follow_up, -excluded_condition, -is_demographic) %>%
     mutate(model_rank = rank(all_looic),
          all_looic = round(all_looic),
          all_se = round(all_se))
@@ -276,8 +276,8 @@ It is possible that our claim type results could be driven by the fact that peop
 ```{r}
 
 model_LOOICs %>%
-  filter(model != "group-prior-consensusXclaimXsource", excluded_condition == "dependent") %>%
-  select(-is_follow_up, -excluded_condition) %>%
+  filter(model != "group-prior-consensusXclaimXsource", excluded_condition == "dependent", !is_demographic) %>%
+  select(-is_follow_up, -excluded_condition, -is_demographic) %>%
     mutate(model_rank = rank(all_looic),
          all_looic = round(all_looic),
          all_se = round(all_se))
@@ -297,8 +297,8 @@ All of the main effects and interactions that were credible in the best performi
 
 ```{r}
 model_LOOICs %>%
-  filter(model != "group-prior-consensusXclaimXsource", excluded_condition == "contested") %>%
-  select(-is_follow_up, -excluded_condition) %>%
+  filter(model != "group-prior-consensusXclaimXsource", excluded_condition == "contested", !is_demographic) %>%
+  select(-is_follow_up, -excluded_condition, -is_demographic) %>%
     mutate(model_rank = rank(all_looic),
          all_looic = round(all_looic),
          all_se = round(all_se))

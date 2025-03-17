@@ -1,9 +1,9 @@
-rm(list = ls())
+
 library(here)
 library(tidyverse)
 library(brms)
 
-load(here("power-simulation/data/generating_params_adjusted.Rdata"))
+load(here("power-simulation/data/derived/generating_params_adjusted.Rdata"))
 participants <- unique(generating_params$uid)
 n <- length(participants)
 

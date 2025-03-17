@@ -18,7 +18,7 @@ bibliography: references.bib
 ```{r}
 #| include = FALSE
 
-rm(list = ls())
+
 library(here)
 library(tidyverse)
 library(ggpubr)
@@ -26,7 +26,7 @@ library(RColorBrewer)
 ```
 
 ```{r}
-load(here("data/derived/model_comparison.Rdata"))
+load(here("analyses/derived-data/model_comparison.Rdata"))
 load(here("data/clean/all_data_clean.Rdata"))
 data <- all_data[[1]]
 ```
@@ -273,7 +273,7 @@ It is useful to know whether people who were labeled as preferring an independen
 cor_all
 
 ```{r}
-load(here("data/derived/model_comparison_by_session.Rdata"))
+load(here("analyses/derived-data/model_comparison_by_session.Rdata"))
 
 alt_participants <- as.vector(as.matrix(model_comparison_ind[model_comparison_ind[,"best_model"] == "Alternative Model","subject"]))
 

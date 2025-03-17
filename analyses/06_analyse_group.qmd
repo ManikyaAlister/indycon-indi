@@ -24,7 +24,7 @@ library(emmeans)
 ```
 
 ```{r}
-load(here("data/derived/model_comparison.Rdata"))
+load(here("analyses/derived-data/model_comparison.Rdata"))
 load(here("data/clean/all_data_clean.Rdata"))
 data <- all_data[[1]] %>%
     mutate(update = post_adjusted - pre_adjusted,
@@ -46,7 +46,7 @@ d_consensus_only <- data %>%
 
 ```{r}
 # load claim info
-claim_info <- read.csv(here("data/derived/source_data.csv"))
+claim_info <- read.csv(here("analyses/derived-data/source_data.csv"))
 full_claims <- claim_info %>%
   select(claimId, claim)
 
@@ -154,7 +154,7 @@ deltas_claim_type %>%
 
 ```{r}
 # load output 
-load(here("data/derived/group_output_combined.Rdata"))
+load(here("analyses/derived-data/group_output_combined.Rdata"))
 
 ```
 
@@ -164,8 +164,8 @@ load(here("data/derived/group_output_combined.Rdata"))
 
 ```{r}
 model_LOOICs %>%
-  filter(excluded_condition == "contested" & !is_follow_up) %>%
-    select(-is_follow_up) %>%
+  filter(excluded_condition == "contested" & !is_follow_up & !is_demographic) %>%
+    select(-is_follow_up, -is_demographic) %>%
   mutate(model_rank = rank(all_looic),
          all_looic = round(all_looic),
          all_se = round(all_se))
@@ -175,8 +175,9 @@ model_LOOICs %>%
 
 ```{r}
 model_LOOICs %>%
-  filter(excluded_condition == "dependent" & !is_follow_up) %>%
-  select(-is_follow_up) %>%
+  filter(excluded_condition == "dependent" & !is_follow_up & !is_demographic) %>%
+  select(-is_follow_up,
+         -is_demographic) %>%
     mutate(model_rank = rank(all_looic),
          all_looic = round(all_looic),
          all_se = round(all_se))

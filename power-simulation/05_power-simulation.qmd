@@ -17,7 +17,7 @@ toc: true
 
 ```{r}
 #| include: false
-rm(list=ls())
+
 library(here)
 library(tidyverse)
 library(brms)
@@ -68,7 +68,7 @@ all_NA <- NULL
 has_NA <- c()
 p <- c()
 for (i in 1:n) {
-  load(here(paste0("power-simulation/data/p",i,"-12-trials-adjusted.Rdata")))
+  load(here(paste0("power-simulation/data/simulated/p",i,"-12-trials-adjusted.Rdata")))
   has_na <- any(is.na(sim_data$sideA))
   p <- i
   d_iteration <- cbind(p,has_na)

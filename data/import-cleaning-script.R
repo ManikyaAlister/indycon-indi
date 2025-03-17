@@ -1,7 +1,7 @@
 # Import experiment data from google cloud
 # Python3 export_results.py live rectangleworld learn c23 v2 results.json
 
-rm(list = ls())
+
 library(here)
 library(jsonlite)
 library(tidyverse)
@@ -32,16 +32,34 @@ claim_info <- data.frame(
 )
 
 # load source type information
-source_info <- read.csv(here("data/derived/source_data.csv"))
+source_info <- read.csv(here("analyses/derived-data/source_data.csv"))
 
 # Displaying the created data frame
 print(data)
 
 
-RAW_DATA_FILE <- "data/raw/anon-results.json";
+RAW_DATA_FILE <- "data/raw/anon-results.json";#data/raw/anon-results.json";
 
 # load data
 d_json <- read_json(here(RAW_DATA_FILE))
+
+# check source =prolific
+count_prolific <- function(x) {
+  sum(sapply(x, function(y) is.list(y) && "src" %in% names(y) && y$src == "prolific"))
+}
+count_prolific(t)
+
+extract_anon_pids <- function(x) {
+  anon_pids <- unlist(sapply(x, function(y) {
+    if (is.list(y) && "src" %in% names(y) && y$src == "prolific" && "ANON_PID" %in% names(y)) {
+      return(y$ANON_PID)
+    } else {
+      return(NULL)
+    }
+  }))
+  return(anon_pids)
+}
+
 
 #t <- as.character(unname(as.matrix(sapply(test, function(x) x["P"]))))
 
@@ -61,16 +79,19 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete refers t
   follow_ups <- NULL 
   # keep track of people who removed for accuracy in session 1
   rm_accuracy_s1 <- NULL 
+
+  # all prolific participants
+  all_prolific_unfiltered <- NULL 
   
   # keep track of participant ids and session numbers
   id_sesh <- NULL
+  
   for (i in 1:length(raw_data)) {
     print(i)
     #if (i == 44) next
     d_participant <- raw_data[[i]]
-    # skip if participant didn't finish
-    if (is.null(d_participant$experimentEndStatus))
-      next
+    
+    
     # skip if participant isn't an mturker
     if (d_participant$src != "prolific")
       next
@@ -78,6 +99,19 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete refers t
     # skip if not in "live" environment
     if (d_participant$env != "live")
       next
+  
+    
+    session_number <- d_participant[["session_number"]]
+    prolific_id <- d_participant[["ANON_PID"]]
+    
+    # store to know how many prolific participants we had total, even those who dropped out in s1
+    all_prolific_unfiltered <- c(all_prolific_unfiltered, prolific_id)
+    
+    # skip if participant didn't finish and record them
+    if (is.null(d_participant$experimentEndStatus)){
+      next
+    }
+  
     # assign participant number
     
     
@@ -143,11 +177,6 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete refers t
     }
     
     
-    prolific_id <- d_participant[["ANON_PID"]]
-    
-    session_number <- d_participant[["session_number"]]
-    print(session_number)
-    
     accuracy_info <- c(mean_accuracy,prolific_id, session_number)
     
     #print(paste0("Accuracy: ", mean_accuracy, " Participant: ", prolific_id))
@@ -177,7 +206,7 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete refers t
       mean_time <- mean(times)/60000
     }
     
-    mean_read_times <- apply(trial_data_wide[,"tweetReadTime"], 1, getTrialReadTimes) # doesn't look right
+    mean_read_times <- apply(trial_data_wide[,"tweetReadTime"], 1, getTrialReadTimes) 
     
     trial_data_wide <- trial_data_wide %>%
       mutate(trial_accuracy = trial_accuracy)
@@ -452,7 +481,15 @@ cleaning_fun = function(raw_data, all_complete = TRUE) { # all complete refers t
   all_data <- all_data[c("participant", names(all_data)[-which(names(all_data) == "participant")])]
   follow_ups <- follow_ups[c("participant", names(follow_ups)[-which(names(follow_ups) %in% c("participant", "ANON_PID"))])]
   #print(id_sesh)
-  list(data = all_data, rm_accuracy = rm_accuracy, rm_drop_out = rm_drop_out, follow_up = follow_ups, demographics = all_demographics, no_removals = all_data_nr, rm_accuracy_s1 = rm_accuracy_s1)
+  list(
+    data = all_data,
+    rm_accuracy = rm_accuracy,
+    rm_drop_out = rm_drop_out,
+    follow_up = follow_ups,
+    demographics = all_demographics,
+    no_removals = all_data_nr,
+    rm_accuracy_s1 = rm_accuracy_s1,
+    all_prolific_unfiltered = all_prolific_unfiltered )
   
 }
 
@@ -473,11 +510,19 @@ rm_accuracy <- length(unique(accuracy_data[,2]))
 rm_accuracy_ids <- unique(accuracy_data[,2])
 rm_accuracy_string <- paste(rm_accuracy_ids, collapse = ",")
 
+total_prolific_unfiltered <- length(unique(all_data$all_prolific_unfiltered))
+paste0("Total unique participants recruited from prolific before filtering: ", total_prolific_unfiltered)
+
+
+
 paste0(rm_accuracy, " total participants removed for accuracy < .9")
 
 # participants removed for accuracy in s1 ad not invited back
 rm_acc_s1 <- unique(all_data$rm_accuracy_s1[,2])
 paste0(length(rm_acc_s1), " participants removed for accuracy < .9 in session 1 and not invited back")
+
+rm_accuracy_s2 <- all_data$rm_accuracy[all_data$rm_accuracy[,3] == "2",2]
+rm_accuracy_2[rm_accuracy_2 %in% rm_acc_s1]
 
 # find out who did not complete s2 of the participants who were invited to return from s1
 

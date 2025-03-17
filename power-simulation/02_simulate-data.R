@@ -1,10 +1,10 @@
-rm(list = ls())
+
 library(here)
 library(tidyverse)
 # simulate data
-load(here("power-simulation/data/generating_params_adjusted.Rdata"))
-load(here("power-simulation/data/participant_types.Rdata"))
-load(here("data/experiment-3-2022/data.rdata"))
+load(here("power-simulation/data/derived/generating_params_adjusted.Rdata"))
+load(here("power-simulation/data/simulated/participant_types.Rdata"))
+load(here("power-simulation/data/experiment-3-2022/data.rdata"))
 
 
 participants <- participant_types$full_uid
@@ -58,9 +58,14 @@ for (i in 1:n){
     prior_sim <- rnorm(max_trials_per_cell, m_prior, sd_prior)
     post_sim <- rnorm(max_trials_per_cell, m_post, sd_post)
     
-    update = c(cell_real$update, update_sim)
+    update <- c(cell_real$update, update_sim)
     prior <- c(cell_real$prior_adjusted, prior_sim)
     post <- c(cell_real$post_adjusted, post_sim)
+    
+    # Ensure nSources_A and type have the same length as update/prior/post
+    n_total <- length(update)  # Get the actual total number of trials
+    nSources_A = rep(as.character(nSources), n_total)
+    type <- rep(as.character(type), n_total)
     
     d_cell <- cbind(p, nSources_A, update, prior, post, type, id)
     all_sim_data <- rbind(all_sim_data, d_cell)
@@ -73,6 +78,6 @@ for (i in 1:n){
     n_trials <- n_trials_per_cell * n_cells
     sim_data <- as.data.frame(sim_data)
     sim_data$update = as.numeric(sim_data$update)
-    save(sim_data, file = here(paste0("power-simulation/data/p",i,"-",n_trials,"-trials-adjusted.Rdata")))
+    save(sim_data, file = here(paste0("power-simulation/data/simulated/p",i,"-",n_trials,"-trials-adjusted.Rdata")))
   }
 }
