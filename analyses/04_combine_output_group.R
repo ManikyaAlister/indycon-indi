@@ -17,7 +17,7 @@ follow_up_models <-
     "group-prior-consensusXclaimXsource")
 
 demographic_models <- c(
-  "group-prior-consensus*age",
+  "group-prior-consensusXage",
   "group-prior-consensusXpolitcalscale",
   "group-prior-consensusXpolitcalstrength",
   "group-prior-consensusXpolitcalgroup",

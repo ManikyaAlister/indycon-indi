@@ -9,7 +9,7 @@ library(brms)
 library(dplyr)
 
 # define model name 
-models <- c("group-prior-consensus*age", "group-prior-consensusXclaim-certainty", "group-prior-consensusXclaimXsource", "group-prior-consensus*age", "group-prior-consensusXpolitcalstrength", "group-prior-consensusXpolitcalscale", "group-prior-consensusXpolitcalgroup", "group-prior-consensusXunieducation", "group-prior-consensusXsocmedprop")
+models <- c("group-prior-consensusXage", "group-prior-consensusXclaim-certainty", "group-prior-consensusXclaimXsource", "group-prior-consensusXpolitcalstrength", "group-prior-consensusXpolitcalscale", "group-prior-consensusXpolitcalgroup", "group-prior-consensusXunieducation", "group-prior-consensusXsocmedprop")
 # how to run wirh commandArgs: type in terminal 
 # Rscript analyses/01_models/run_follow_up_group_models_local.R  <model e.g., "group-prior-consensusXclaimXsource">
 #model <- commandArgs(trailingOnly = TRUE)
@@ -39,7 +39,7 @@ for (i in 1:length(models)){
       output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + pre_certainty + consensus * claim_type, data = filtered_data, cores = cores)
     } else if (model == "group-prior-consensusXclaimXsource"){
       output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus * claim_type * source, data = filtered_data, cores = cores)
-    } else if (model == "group-prior-consensus*age"){
+    } else if (model == "group-prior-consensusXage"){
       output <- brm(post_adjusted ~ (1|participant) + pre_adjusted + consensus * demographics_age, data = filtered_data, cores = cores)
     } else if (model == "group-prior-consensusXpolitcalstrength") {
       filtered_data_pol <- filtered_data %>%
