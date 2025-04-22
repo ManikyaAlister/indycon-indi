@@ -16,6 +16,53 @@ getCredibleInt <- function(output, probs = c(0.055, 0.945)){ # default is 89% cr
   interval
 }
 
+getRhat = function(model_details, by_session = FALSE){
+  
+  if (is.data.frame(model_details)){
+    vec_names <- colnames(model_details)
+    model_details <- as.vector(as.matrix(model_details))
+    names(model_details) <- vec_names
+  }
+  
+  participant <- as.numeric(model_details["subject"])
+  
+  model <- model_details["model"]
+  
+  rhat_details <- NULL#c(model = NA, parameter = NA, Rhat = NA)
+  
+  remove <- model_details["excluded_condition"]
+  
+  # if by session "remove" isn't really accurate, since we're selecting that session, not 
+  # removing it but since this was how it was in the original function I don't want to change it. 
+  if (by_session){
+    load(here(
+      paste0(
+        "analyses/02_output/P",
+        participant,
+        "-",
+        model,
+        "-rm-contested-session-",remove,".Rdata"
+      )
+    ))
+  } else {
+    load(here(
+      paste0(
+        "analyses/02_output/P",
+        participant,
+        "-",
+        model,
+        "-rm-",
+        remove,
+        ".Rdata"
+      )
+    ))
+  }
+  
+  summ_output <- summary(output)$fixed
+  rhat_details <- cbind(participant = participant, model = model, parameter = rownames(summ_output), removed_cond = remove, Rhat = summ_output[,"Rhat"])
+  rhat_details
+}
+
 getModelOutput <- function(model_details, by_session = FALSE){
   
   if (is.data.frame(model_details)){
@@ -65,6 +112,7 @@ getModelOutput <- function(model_details, by_session = FALSE){
   summ_output <- summary(output)
   processed_output["looic"] <- loo(output)$estimates["looic",1]
   
+  
   if (model == "indi-prior-consensus") {
     processed_output["consensus_estimate"] <- summ_output$fixed["consensusindependent","Estimate"]
     credible_interval <- getCredibleInt(output)
@@ -78,6 +126,19 @@ getModelOutput <- function(model_details, by_session = FALSE){
 
 # get model output for all participants and conditions
 procesed_output <- t(apply(model_details, 1, getModelOutput))
+
+# get rhat details 
+rhat_details <- rhat_details_list <- lapply(1:nrow(model_details), function(i) {
+  getRhat(model_details[i, ])
+})
+
+rhat_details <- do.call(rbind, rhat_details_list) %>%
+  as.data.frame() %>%
+  mutate(Rhat = round(as.numeric(Rhat),3))
+
+
+save(rhat_details, file = here("analyses/02_output/rhat-details.Rdata")) 
+
 
 # combine with model details 
 model_output <- cbind(model_details, procesed_output)
