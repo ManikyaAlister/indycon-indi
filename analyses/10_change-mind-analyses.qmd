@@ -79,7 +79,7 @@ ggsave(here("analyses/07_Plots/original-stance-claim.png"), width = 7, height = 
 ```{r}
 colour_scale <- c("purple", "blue", "red")
 
-data %>%
+ data %>%
   filter(!is.na(changed_mind)) %>%
   mutate(changed_mind = ifelse(changed_mind == T, "Yes", "No"))%>%
   group_by(consensus, changed_mind, claim_type) %>%
@@ -113,8 +113,30 @@ d_change_mind_claim <- data %>%
   ungroup() %>%
   mutate(percent = round((n_trials/sum(n_trials))*100,2))
 
+
 d_change_mind
-sum(d_change_mind$percent[d_change_mind$changed_mind == TRUE])
-sum(d_change_mind$percent[d_change_mind$changed_mind == TRUE & d_change_mind$consensus != "contested"])
+
+perc_change_mind_total <- sum(d_change_mind$percent[d_change_mind$changed_mind == TRUE])
+
+paste0("Percentage of trials where participants changed their mind: ",perc_change_mind_total)
+
+perc_change_mind_consensus <- sum(d_change_mind$percent[d_change_mind$changed_mind == TRUE & d_change_mind$consensus != "contested"])
+
+paste0("Percent of change of mind trials that were in consensus conditions: ", round(perc_change_mind_consensus/perc_change_mind_total, 2)*100)
+
+```
+
+The table below shows the proportion of participants who changed their mind for each knowability condition. 
+
+```{r}
+d_change_mind_claim <- data %>%
+   filter(!is.na(changed_mind)) %>%
+   group_by(claim_type, changed_mind) %>%
+   summarise(n_trials = n()) %>%
+   ungroup() %>%
+   mutate(percent = round((n_trials/sum(n_trials))*100,2))
+
+d_change_mind_claim
+
 ```
 

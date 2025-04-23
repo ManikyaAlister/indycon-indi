@@ -485,12 +485,12 @@ formatModelComparison = function(mc_data){
       model == "group-prior-consensus" ~ "pre + consensus",
       model == "group-prior-consensus-claim" ~ "pre + consensus + claim type",
       model == "group-prior-consensusXclaim" ~ "pre + consensus X claim type",
-      model == "group-prior-consensus*age" ~ "pre + consensus X age",
-      model == "group-prior-consensus*unieducation" ~ "pre + conesnsus X university education",
-      model == "group-prior-consensus*socmedprop" ~ "pre + consensus X social media",
-      model == "group-prior-consensus*politcalscale" ~ "pre + consensus X political scale",
-      model == "group-prior-consensus*politcalstrength" ~ "pre + consensus X political strength",
-      model == "group-prior-consensus*politcalgroup" ~ "pre + consensus X political group"
+      model == "group-prior-consensusXage" ~ "pre + consensus X age",
+      model == "group-prior-consensusXunieducation" ~ "pre + conesnsus X university education",
+      model == "group-prior-consensusXsocmedprop" ~ "pre + consensus X social media",
+      model == "group-prior-consensusXpolitcalscale" ~ "pre + consensus X political scale",
+      model == "group-prior-consensusXpolitcalstrength" ~ "pre + consensus X political strength",
+      model == "group-prior-consensusXpolitcalgroup" ~ "pre + consensus X political group"
     ))%>%
     rename(Model = model, LOOIC = all_looic, SE = all_se, Rank = rank)
   
@@ -552,7 +552,7 @@ The positive consensus X political scale interaction suggests that the differenc
 ## Political Strength (Centre to Strong)
 
 ```{r}
-load(here("analyses/02_output/group-prior-consensus*politcalstrength-rm-dependent.Rdata"))
+load(here("analyses/02_output/group-prior-consensusXpolitcalstrength-rm-dependent.Rdata"))
 formatOutput(output, "Political Strength")
 ```
 
@@ -584,7 +584,7 @@ The negative Consensus X Political Scale interaction suggests that the more left
 ### Political Strength (Centre to Strong)
 
 ```{r}
-load(here("analyses/02_output/group-prior-consensus*politcalstrength-rm-contested.Rdata"))
+load(here("analyses/02_output/group-prior-consensusXpolitcalstrength-rm-contested.Rdata"))
 formatOutput(output, "Political Strength")
 ```
 

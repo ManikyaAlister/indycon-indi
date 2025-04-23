@@ -522,7 +522,7 @@ rm_acc_s1 <- unique(all_data$rm_accuracy_s1[,2])
 paste0(length(rm_acc_s1), " participants removed for accuracy < .9 in session 1 and not invited back")
 
 rm_accuracy_s2 <- all_data$rm_accuracy[all_data$rm_accuracy[,3] == "2",2]
-rm_accuracy_2[rm_accuracy_2 %in% rm_acc_s1]
+rm_accuracy_s2[rm_accuracy_s2 %in% rm_acc_s1]
 
 # find out who did not complete s2 of the participants who were invited to return from s1
 

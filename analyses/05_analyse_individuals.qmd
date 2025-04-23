@@ -100,7 +100,7 @@ deltas_consensus
 
 ```{r}
 
-title = "Independent Consensus vs. No Dependent Consensus"
+title = "Independent Consensus vs. Dependent Consensus"
 xlab = "Participant (ordered by independent - dependent)"
 
 deltas_ind <- deltasPlot(remove_condition = "contested", title, xlab)
